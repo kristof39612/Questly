@@ -1,4 +1,5 @@
 # Questly
+[![Android Build](https://github.com/kristof39612/Questly/actions/workflows/android.yml/badge.svg)](https://github.com/kristof39612/Questly/actions/workflows/android.yml)
 
 Questly is an Android application developed by us for VIAUMA21.
 
