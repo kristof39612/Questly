@@ -1,4 +1,4 @@
-package hu.bme.aut.szoftverarch.questly
+package hu.bme.aut.szoftverarch.questly.fragments.auth
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import hu.bme.aut.szoftverarch.questly.R
 
 class RegisterFragment : Fragment() {
     override fun onCreateView(

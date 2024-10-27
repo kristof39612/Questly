@@ -27,8 +27,8 @@ import androidx.navigation.compose.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavDestination.Companion.hierarchy
-import hu.bme.aut.szoftverarch.questly.fragments.HomeScreenFragment
-import hu.bme.aut.szoftverarch.questly.fragments.ToplistFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.ToplistFragment
 import kotlinx.coroutines.launch
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +68,7 @@ fun MainScreen(drawerState: DrawerState) {
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = drawerState.isOpen,
         drawerContent = {
             Surface(
                 modifier = Modifier

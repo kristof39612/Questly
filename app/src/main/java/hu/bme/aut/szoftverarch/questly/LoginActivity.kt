@@ -3,6 +3,8 @@ package hu.bme.aut.szoftverarch.questly
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.commit
+import hu.bme.aut.szoftverarch.questly.fragments.auth.LoginFragment
+import hu.bme.aut.szoftverarch.questly.fragments.auth.RegisterFragment
 
 class LoginActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
