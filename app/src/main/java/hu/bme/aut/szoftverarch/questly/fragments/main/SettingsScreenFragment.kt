@@ -1,6 +1,6 @@
 package hu.bme.aut.szoftverarch.questly.fragments.main
 
-import android.widget.Toast
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -16,7 +16,6 @@ import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.SingleChoiceTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.TextPromptTask
-import hu.bme.aut.szoftverarch.questly.data.utils.GsonProvider
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import kotlinx.coroutines.launch
