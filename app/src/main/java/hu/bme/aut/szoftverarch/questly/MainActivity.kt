@@ -35,8 +35,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.painter.Painter
+import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
+import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -122,12 +125,30 @@ fun MainScreen(drawerState: DrawerState) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Questly") },
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(
+                                modifier = Modifier.weight(0.80f),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text("Questly")
+                            }
+                            //Spacer(modifier = Modifier.weight(0.1f))
+                            Column(modifier = Modifier.weight(0.13f)) {
+                                IconButton(onClick = {}){
+                                    Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                                }
+                            }
+                        }
+
+                    },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
                     }
+
                 )
             },
             bottomBar = {
@@ -239,21 +260,6 @@ fun BottomNavigationBar(navController: NavController) {
                 }
             }
         )
-    }
-}
-
-
-@Composable
-fun SettingsScreen() {
-    Column(Modifier.padding(16.dp)) {
-        Text("Settings Screen")
-    }
-}
-
-@Composable
-fun ProfileScreen() {
-    Column(Modifier.padding(16.dp)) {
-        Text("Profile Screen")
     }
 }
 
