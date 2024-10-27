@@ -43,7 +43,6 @@ fun SettingsScreen() {
 
     val taskPointDatabase = TaskPointDatabase.getInstance(context)
     val taskPointDao = taskPointDatabase.taskPointDao()
-    var tl: List<TaskPoint> = listOf()
     // Initialize Gson with TaskTypeAdapter
 
     Column(Modifier.padding(16.dp)) {
@@ -55,19 +54,6 @@ fun SettingsScreen() {
             }
         }) {
             Text("Debug TaskPoints")
-        }
-        Button(onClick = {
-            scope.launch {
-                tl = taskPointDao.queryAll()
-            }
-        }){
-            Text("Query TaskPoints")
-        }
-        Button(onClick = {
-            val debugList =tl
-            Toast.makeText(context, "TaskPoints", Toast.LENGTH_SHORT).show()
-        }) {
-            Text("DEBUG TaskPoints")
         }
     }
 

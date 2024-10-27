@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
+    id("com.google.devtools.ksp")
+    id("androidx.room")
 }
 
 android {
@@ -16,12 +18,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        kapt {
-            arguments {
-                arg("room.schemaLocation", "$projectDir/schemas")
-            }
-        }
 
+    }
+
+    packaging {
+        // Unable to strip the following libraries, packaging them as they are:
+        jniLibs.keepDebugSymbols.add("**/libandroidx.graphics.path.so")
     }
 
     buildTypes {
@@ -46,6 +48,9 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
+    }
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 }
 
@@ -82,7 +87,7 @@ dependencies {
 
     //Room
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.gson)
 
