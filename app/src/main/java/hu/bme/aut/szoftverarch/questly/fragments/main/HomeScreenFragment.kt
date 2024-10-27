@@ -1,66 +1,66 @@
-package hu.bme.aut.szoftverarch.questly.fragments
+package hu.bme.aut.szoftverarch.questly.fragments.main
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import android.Manifest
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.rememberCameraPositionState
-import android.Manifest
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.MarkerComposable
-import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import hu.bme.aut.szoftverarch.questly.R
+import hu.bme.aut.szoftverarch.questly.data.TaskPoint
+import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreenFragment() {
-
     val context = LocalContext.current
+    val taskPoints = remember { mutableStateListOf<TaskPoint>() }
+    val taskPointDatabase = remember { TaskPointDatabase.getInstance(context) }
+    val taskPointDao = remember { taskPointDatabase.taskPointDao() }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            val points = taskPointDao.queryAll()
+            taskPoints.addAll(points)
+        }
+    }
 
     val gpsPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val bpcenter = LatLng(47.4977309, 19.0506962)
-    val textpoint = LatLng(47.4977309 + 0.00045, 19.0506962) // ~50m north
-    val walkpoint = LatLng(47.4977309, 19.0506962 + 0.00065) // ~50m east
-    val selectionpoint = LatLng(47.4977309 - 0.00045, 19.0506962) // ~50m south
 
-
+    // Initial permission request
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -93,10 +93,10 @@ fun HomeScreenFragment() {
         )
     }
 
-    // Initial permission request
-
+    //Room database
+    //val taskPointDatabase = TaskPointDatabase.getInstance(context)
+    //val taskPointDao = taskPointDatabase.taskPointDao()
     // UI
-
     if (gpsPermissionState.status.isGranted) {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
@@ -104,7 +104,20 @@ fun HomeScreenFragment() {
             uiSettings = uiSettings,
             properties = mapProperties
         ){
-            MarkerComposable(
+            taskPoints.forEach { taskPoint ->   //TODO: Típus drótozás
+                MarkerComposable(
+                    state = MarkerState(position = taskPoint.getGoogleLatLng())
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.ic_abc),
+                        modifier = Modifier.background(Color.Black),
+                        contentDescription = "" ,
+                        tint = Color.White
+                    )
+                }
+            }
+
+            /*MarkerComposable(
                 state = MarkerState(position = bpcenter)
             ) {
                 Icon(
@@ -184,7 +197,7 @@ fun HomeScreenFragment() {
                     }
                 }
             }*/
-
+*/
         }
     } else {
         Column(

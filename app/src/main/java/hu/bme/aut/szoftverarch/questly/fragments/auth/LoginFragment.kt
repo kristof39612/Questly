@@ -1,4 +1,4 @@
-package hu.bme.aut.szoftverarch.questly
+package hu.bme.aut.szoftverarch.questly.fragments.auth
 
 import android.app.Activity
 import android.content.Intent
@@ -26,6 +26,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.fragment.app.Fragment
+import hu.bme.aut.szoftverarch.questly.LoginActivity
+import hu.bme.aut.szoftverarch.questly.MainActivity
+import hu.bme.aut.szoftverarch.questly.R
 
 class LoginFragment : Fragment() {
     override fun onCreateView(

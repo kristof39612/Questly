@@ -1,4 +1,4 @@
-package hu.bme.aut.szoftverarch.questly.fragments
+package hu.bme.aut.szoftverarch.questly.fragments.main
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding

@@ -2,45 +2,39 @@ package hu.bme.aut.szoftverarch.questly
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.*
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
-import hu.bme.aut.szoftverarch.questly.fragments.HomeScreenFragment
-import hu.bme.aut.szoftverarch.questly.fragments.ToplistFragment
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
+import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
+import hu.bme.aut.szoftverarch.questly.fragments.main.ToplistFragment
 import kotlinx.coroutines.launch
-import androidx.activity.OnBackPressedCallback
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.painter.Painter
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+        //Main Content
     setContent {
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
@@ -65,9 +59,14 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(drawerState: DrawerState) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
+    //val context = LocalContext.current
+    //Database test
+    //val taskPointDatabase = TaskPointDatabase.getInstance(context)
+    //val taskPointDao = taskPointDatabase.taskPointDao()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = drawerState.isOpen,
         drawerContent = {
             Surface(
                 modifier = Modifier
@@ -121,12 +120,31 @@ fun MainScreen(drawerState: DrawerState) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Questly") },
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(
+                                modifier = Modifier.weight(0.80f),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text("Questly")
+                            }
+                            //Spacer(modifier = Modifier.weight(0.1f))
+                            Column(modifier = Modifier.weight(0.13f)) {
+                                IconButton(onClick = {      //TODO: Refresh operations
+                                }){
+                                    Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                                }
+                            }
+                        }
+
+                    },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Menu")
                         }
                     }
+
                 )
             },
             bottomBar = {
@@ -238,21 +256,6 @@ fun BottomNavigationBar(navController: NavController) {
                 }
             }
         )
-    }
-}
-
-
-@Composable
-fun SettingsScreen() {
-    Column(Modifier.padding(16.dp)) {
-        Text("Settings Screen")
-    }
-}
-
-@Composable
-fun ProfileScreen() {
-    Column(Modifier.padding(16.dp)) {
-        Text("Profile Screen")
     }
 }
 
