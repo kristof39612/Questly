@@ -1,11 +1,7 @@
 package hu.bme.aut.szoftverarch.questly.data.tasks
 
-open class Task() {
+abstract class Task() {
     var id: String = ""
-    open var pointForCompletion: Int = 0
+    protected abstract val pointForCompletion: Int
 
-    constructor(id: String, pointForCompletion: Int) : this() {
-        this.id = id
-        this.pointForCompletion = pointForCompletion
-    }
 }

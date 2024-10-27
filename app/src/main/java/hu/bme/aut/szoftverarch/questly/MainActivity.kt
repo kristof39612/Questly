@@ -41,7 +41,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
-import hu.bme.aut.szoftverarch.questly.data.tasks.Task
+import hu.bme.aut.szoftverarch.questly.data.tasks.TextPromptTask
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
@@ -150,12 +150,12 @@ fun MainScreen(drawerState: DrawerState) {
                                 IconButton(onClick = {      //TODO: REMOVE ROOM DEBUG
                                     scope.launch {
                                         val tp = TaskPoint(
-                                            id = "id",
-                                            task = Task(),
+                                            id = "id1",
+                                            task = TextPromptTask(),
                                             status = StatusEnum.APPROVED,
                                             location = LatLong(),
                                             authorUserId = "author",
-                                            rating = 4.0f
+                                            rating = 3.0f
                                         )
                                         taskPointDao.insertAll(tp)
                                     }
