@@ -38,12 +38,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
+import hu.bme.aut.szoftverarch.questly.data.TaskPoint
+import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
+import hu.bme.aut.szoftverarch.questly.data.tasks.Task
+import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
+import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+        //Main Content
     setContent {
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
@@ -68,6 +75,10 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(drawerState: DrawerState) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    //Database test
+    val taskPointDatabase = TaskPointDatabase.getInstance(context)
+    val taskPointDao = taskPointDatabase.taskPointDao()
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -136,7 +147,19 @@ fun MainScreen(drawerState: DrawerState) {
                             }
                             //Spacer(modifier = Modifier.weight(0.1f))
                             Column(modifier = Modifier.weight(0.13f)) {
-                                IconButton(onClick = {}){
+                                IconButton(onClick = {      //TODO: REMOVE ROOM DEBUG
+                                    scope.launch {
+                                        val tp = TaskPoint(
+                                            id = "id",
+                                            task = Task(),
+                                            status = StatusEnum.APPROVED,
+                                            location = LatLong(),
+                                            authorUserId = "author",
+                                            rating = 4.0f
+                                        )
+                                        taskPointDao.insertAll(tp)
+                                    }
+                                }){
                                     Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                                 }
                             }

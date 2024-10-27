@@ -47,6 +47,7 @@ import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import hu.bme.aut.szoftverarch.questly.R
+import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -60,7 +61,7 @@ fun HomeScreenFragment() {
     val walkpoint = LatLng(47.4977309, 19.0506962 + 0.00065) // ~50m east
     val selectionpoint = LatLng(47.4977309 - 0.00045, 19.0506962) // ~50m south
 
-
+    // Initial permission request
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -93,10 +94,10 @@ fun HomeScreenFragment() {
         )
     }
 
-    // Initial permission request
-
+    //Room database
+    val taskPointDatabase = TaskPointDatabase.getInstance(context)
+    val taskPointDao = taskPointDatabase.taskPointDao()
     // UI
-
     if (gpsPermissionState.status.isGranted) {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
