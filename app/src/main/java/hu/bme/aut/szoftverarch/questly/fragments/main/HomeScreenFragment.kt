@@ -4,11 +4,13 @@ import android.Manifest
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,26 +21,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
+import hu.bme.aut.szoftverarch.questly.graphics.getBitmapFromVectorDrawable
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -104,16 +110,34 @@ fun HomeScreenFragment() {
             uiSettings = uiSettings,
             properties = mapProperties
         ){
-            taskPoints.forEach { taskPoint ->   //TODO: Típus drótozás
-                MarkerComposable(
-                    state = MarkerState(position = taskPoint.getGoogleLatLng())
+            taskPoints.forEach { taskPoint ->
+                val icon = when(taskPoint.task::class.java.simpleName){
+                    "TextPromptTask" -> R.drawable.ic_abc
+                    "GoToPointTask" -> R.drawable.ic_walking
+                    "SingleChoiceTask" -> R.drawable.ic_selection
+                    else -> R.drawable.ic_home
+                }
+                MarkerInfoWindow(
+                    state = MarkerState(position = taskPoint.getGoogleLatLng()),
+                    icon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(context, icon))
                 ) {
-                    Icon(
-                        painterResource(id = R.drawable.ic_abc),
-                        modifier = Modifier.background(Color.Black),
-                        contentDescription = "" ,
-                        tint = Color.White
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(10))
+                            .clip(RoundedCornerShape(10))
+                            .background(Color.Blue)
+                            .padding(20.dp)
+                    ) {
+                        Text(text = taskPoint.task::class.java.simpleName, fontWeight = FontWeight.Bold, color = Color.White)
+                        Button(onClick = {
+                            // Displaying the toast
+                            Toast.makeText(context, "OK!", Toast.LENGTH_SHORT).show()   //TODO: Button click not working
+                        }) {
+                            Text("Start")
+                        }
+                    }
                 }
             }
 

@@ -45,14 +45,14 @@ fun SettingsScreen() {
     // Initialize Gson with TaskTypeAdapter
 
     Column(Modifier.padding(16.dp)) {
-        Text("Settings Screen")
+        Text("Debug options")
         Button(onClick = {
             for (taskPoint in taskPoints) { scope.launch {
                 taskPointDao.insertAll(taskPoint)
                 }
             }
         }) {
-            Text("Debug TaskPoints")
+            Text("Insert debug TaskPoints")
         }
     }
 
