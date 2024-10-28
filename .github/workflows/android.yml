@@ -2,45 +2,25 @@ name: Android Build
 
 on:
   push:
-    branches:
-      - master
+    branches: [ "master" ]
   pull_request:
-    branches:
-      - master
+    branches: [ "master" ]
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code from the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
 
-      # Set up JDK 17
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'  # 'temurin' is a widely used JDK distribution, you can also use 'zulu' or others
-          java-version: 17
-
-      # Set up Android SDK
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v2
-        with:
-          api-level: 34            # Adjust to your target API level
-          build-tools-version: 34.0.0 # Adjust to your required build tools version
-          components: platform-tools
-
-      # Grant execute permission to gradlew
-      - name: Make gradlew executable
-        run: chmod +x gradlew
-
-      # Run the build (assembleRelease or assembleDebug based on your needs)
-      - name: Build Android App
-        run: ./gradlew assembleRelease
-
-      # Output success message if the build succeeds
-      - name: Success
-        if: success()
-        run: echo "Build succeeded with JDK 17!"
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      run: ./gradlew build
