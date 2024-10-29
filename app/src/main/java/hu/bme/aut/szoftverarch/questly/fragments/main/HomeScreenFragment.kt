@@ -48,11 +48,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
-import com.google.gson.Gson
 import com.google.maps.android.compose.Marker
 import hu.bme.aut.szoftverarch.questly.data.tasks.*
-import hu.bme.aut.szoftverarch.questly.data.utils.Converters
-import hu.bme.aut.szoftverarch.questly.data.utils.GsonProvider
 
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)

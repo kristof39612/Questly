@@ -26,8 +26,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
