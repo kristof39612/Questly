@@ -2,6 +2,7 @@ package hu.bme.aut.szoftverarch.questly.fragments.main
 
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -13,9 +14,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
+import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
 import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.SingleChoiceTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.TextPromptTask
+import hu.bme.aut.szoftverarch.questly.data.toplist.ToplistEntry
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import kotlinx.coroutines.launch
@@ -40,8 +43,18 @@ fun SettingsScreen() {
         TaskPoint(id = "SelectionPoint 1", location = selectionpoint, task = selectionTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 0.1f),
     )
 
+    val toplistEntries = listOf(
+        ToplistEntry(userId = "Alice", earnedPoints = 100),
+        ToplistEntry(userId = "Bob", earnedPoints = 200),
+        ToplistEntry(userId = "Charlie", earnedPoints = 300),
+        ToplistEntry(userId = "Daniel", earnedPoints = 400),
+        ToplistEntry(userId = "Emma", earnedPoints = 500),
+    )
+
     val taskPointDatabase = TaskPointDatabase.getInstance(context)
     val taskPointDao = taskPointDatabase.taskPointDao()
+    val toplistDatabase = ToplistDatabase.getInstance(context)
+    val toplistDao = toplistDatabase.toplistDao()
     // Initialize Gson with TaskTypeAdapter
 
     Column(Modifier.padding(16.dp)) {
@@ -53,6 +66,15 @@ fun SettingsScreen() {
             }
         }) {
             Text("Insert debug TaskPoints")
+        }
+        Spacer(modifier = Modifier.padding(8.dp))
+        Button(onClick = {
+            for (toplistEntry in toplistEntries) { scope.launch {
+                    toplistDao.insertAll(toplistEntry)
+                }
+            }
+        }){
+            Text("Insert debug ToplistEntries")
         }
     }
 

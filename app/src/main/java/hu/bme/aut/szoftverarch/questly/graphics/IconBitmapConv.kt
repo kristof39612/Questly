@@ -12,7 +12,6 @@ import androidx.core.content.ContextCompat
 fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): Bitmap {
     val drawable = ContextCompat.getDrawable(context, drawableId)!!.mutate()
 
-    // Set the color filter to white
     drawable.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
 
     // Create a bitmap with ARGB_8888 config for transparency support
@@ -22,10 +21,7 @@ fun getBitmapFromVectorDrawable(context: Context, drawableId: Int): Bitmap {
         Bitmap.Config.ARGB_8888
     )
 
-    // Create a canvas to draw on the bitmap
     val canvas = Canvas(bitmap)
-
-    // Draw the black background
     canvas.drawColor(Color.BLACK)
 
     // Draw the white-colored drawable on top of the black background
