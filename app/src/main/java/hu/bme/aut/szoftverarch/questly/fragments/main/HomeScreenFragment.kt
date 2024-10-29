@@ -1,15 +1,13 @@
 package hu.bme.aut.szoftverarch.questly.fragments.main
 
 import android.Manifest
+import android.content.pm.PackageManager
+import android.location.Location
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,8 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +34,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import hu.bme.aut.szoftverarch.questly.R
@@ -47,7 +42,17 @@ import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.graphics.getBitmapFromVectorDrawable
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalPermissionsApi::class)
+
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.setValue
+import com.google.android.gms.location.LocationServices
+import com.google.maps.android.compose.Marker
+import hu.bme.aut.szoftverarch.questly.data.tasks.*
+
+
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenFragment() {
     val context = LocalContext.current
@@ -55,6 +60,11 @@ fun HomeScreenFragment() {
     val taskPointDatabase = remember { TaskPointDatabase.getInstance(context) }
     val taskPointDao = remember { taskPointDatabase.taskPointDao() }
     val scope = rememberCoroutineScope()
+    val selectedTaskPoint = remember { mutableStateOf<TaskPoint?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    var userLocation by remember { mutableStateOf<Location?>(null) }
+    var isWithinRange by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -70,9 +80,7 @@ fun HomeScreenFragment() {
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if (isGranted) {
-            // Permission granted
-        } else {
+        if (!isGranted) {
             Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
         }
     }
@@ -94,134 +102,41 @@ fun HomeScreenFragment() {
     }
 
     val mapProperties = remember {
-        MapProperties(
-            isMyLocationEnabled = true,
-        )
+        MapProperties(isMyLocationEnabled = true)
     }
 
-    //Room database
-    //val taskPointDatabase = TaskPointDatabase.getInstance(context)
-    //val taskPointDao = taskPointDatabase.taskPointDao()
-    // UI
     if (gpsPermissionState.status.isGranted) {
+        if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                userLocation = location
+            }
+        }
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
             uiSettings = uiSettings,
             properties = mapProperties
-        ){
+        ) {
             taskPoints.forEach { taskPoint ->
-                val icon = when(taskPoint.task::class.java.simpleName){
+                val icon = when (taskPoint.task::class.java.simpleName) {
                     "TextPromptTask" -> R.drawable.ic_abc
                     "GoToPointTask" -> R.drawable.ic_walking
                     "SingleChoiceTask" -> R.drawable.ic_selection
                     else -> R.drawable.ic_home
                 }
-                MarkerInfoWindow(
+
+                Marker(
                     state = MarkerState(position = taskPoint.getGoogleLatLng()),
-                    icon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(context, icon))
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(10))
-                            .clip(RoundedCornerShape(10))
-                            .background(Color.Blue)
-                            .padding(20.dp)
-                    ) {
-                        Text(text = taskPoint.task::class.java.simpleName, fontWeight = FontWeight.Bold, color = Color.White)
-                        Button(onClick = {
-                            // Displaying the toast
-                            Toast.makeText(context, "OK!", Toast.LENGTH_SHORT).show()   //TODO: Button click not working
-                        }) {
-                            Text("Start")
+                    icon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(context, icon)),
+                    onClick = {
+                        selectedTaskPoint.value = taskPoint
+                        scope.launch {
+                            sheetState.show() // Show the bottom sheet
                         }
+                        true
                     }
-                }
-            }
-
-            /*MarkerComposable(
-                state = MarkerState(position = bpcenter)
-            ) {
-                Icon(
-                    painterResource(id = R.drawable.ic_tourflag),
-                    modifier = Modifier.background(Color.Green),
-                    contentDescription = "" ,
-                    tint = Color.Black
                 )
             }
-
-            MarkerComposable(
-                state = MarkerState(position = textpoint)
-            ) {
-                Icon(
-                    painterResource(id = R.drawable.ic_abc),
-                    modifier = Modifier.background(Color.Black),
-                    contentDescription = "" ,
-                    tint = Color.White
-                )
-            }
-
-            MarkerComposable(
-                state = MarkerState(position = selectionpoint)
-            ) {
-                Icon(
-                    painterResource(id = R.drawable.ic_selection),
-                    modifier = Modifier.background(Color.Black),
-                    contentDescription = "" ,
-                    tint = Color.White
-                )
-            }
-            //val wpstate = MarkerState(position = walkpoint)
-            /*MarkerComposable(
-                state = wpstate,
-
-                onInfoWindowClick = {marker ->
-                    Toast.makeText(context, "Walking", Toast.LENGTH_SHORT).show()
-                }
-            ) {
-                Icon(
-                    painterResource(id = R.drawable.ic_walking),
-                    modifier = Modifier.background(Color.Black),
-                    contentDescription = "" ,
-                    tint = Color.White
-                )
-            }*/
-            MarkerInfoWindow(
-                state = MarkerState(position = walkpoint),
-                icon = BitmapDescriptorFactory.fromResource(R.drawable.placeholder_walking_black)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .border(
-                            BorderStroke(1.dp, Color.Black),
-                            RoundedCornerShape(10)
-                        )
-                        .clip(RoundedCornerShape(10))
-                        .background(Color.Blue)
-                        .padding(20.dp)
-                ) {
-                    Text("Walking point name", fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Description etc", fontWeight = FontWeight.Medium, color = Color.White)
-                }
-            }
-            /*MarkerInfoWindow(state = wpstate) {
-                Column(
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Text("Walk here", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Button(onClick = {
-                        Toast.makeText(context, "Walking", Toast.LENGTH_SHORT).show()
-                    }) {
-                        Text("Start walking")
-                    }
-                }
-            }*/
-*/
         }
     } else {
         Column(
@@ -232,12 +147,9 @@ fun HomeScreenFragment() {
             Image(
                 painter = painterResource(id = R.drawable.placeholder_cat),
                 contentDescription = "Location icon",
-                modifier = Modifier
-                    .padding(16.dp)
+                modifier = Modifier.padding(16.dp)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Button(onClick = {
                 requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }) {
@@ -245,7 +157,80 @@ fun HomeScreenFragment() {
             }
         }
     }
+
+    // ModalBottomSheet for task details
+    selectedTaskPoint.value?.let { taskPoint ->
+        LaunchedEffect(userLocation) {
+            userLocation?.let { location ->
+                val taskLocation = Location("").apply {
+                    latitude = taskPoint.location.latitude
+                    longitude = taskPoint.location.longitude
+                }
+                val distance = location.distanceTo(taskLocation)
+                isWithinRange = distance <= 15          // In meters -> Specification
+            }
+        }
+
+        ModalBottomSheet(
+            sheetState = sheetState,
+            onDismissRequest = {
+                scope.launch {
+                    sheetState.hide()
+                    selectedTaskPoint.value = null
+                }
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = taskPoint.task::class.java.simpleName,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Display task-specific details
+                when (val task = taskPoint.task) {
+                    is TextPromptTask -> {
+                        Text("Question: ${task.question}")
+                        Text("Answer: ${task.answer}")
+                    }
+                    is GoToPointTask -> {
+                        Text("Destination: ${task.where.latitude}, ${task.where.longitude}")
+                    }
+                    is SingleChoiceTask -> {
+                        Text("Question: ${task.question}")
+                        task.answers.forEachIndexed { index, answer ->
+                            Text("Option ${index + 1}: $answer")
+                        }
+                        Text("Correct Answer: ${task.correctAnswer + 1}")
+                    }
+                    else -> {
+                        Text("Unknown task type")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        Toast.makeText(context, "OK!", Toast.LENGTH_SHORT).show()
+                        scope.launch {
+                            sheetState.hide()
+                            selectedTaskPoint.value = null
+                        }
+                    },
+                    enabled = isWithinRange
+                ) {
+                    Text("Start")
+                }
+            }
+        }
+    }
 }
+
 
 @Preview
 @Composable
