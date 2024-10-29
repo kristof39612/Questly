@@ -18,7 +18,7 @@ import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
 import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.SingleChoiceTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.TextPromptTask
-import hu.bme.aut.szoftverarch.questly.data.toplist.ToplistEntry
+import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import kotlinx.coroutines.launch
@@ -38,10 +38,10 @@ fun SettingsScreen() {
     val hutyra = LatLong(47.503237, 19.075318)
 
     val taskPoints = listOf(
-        TaskPoint(id = "HPoint 1", location = hutyra, task = sampleTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 4.5f),
+        TaskPoint(id = "HPoint 1", location = selectionpoint, task = sampleTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 4.5f),
         TaskPoint(id = "TextPoint 1", location = textpoint, task = textTask, status = StatusEnum.REJECTED, authorUserId = "sampleUser", rating = 2.5f),
         TaskPoint(id = "WalkPoint 1", location = walkpoint, task = walkTask, status = StatusEnum.PENDING, authorUserId = "sampleUser", rating = 3.55f),
-        TaskPoint(id = "SelectionPoint 1", location = selectionpoint, task = selectionTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 0.1f),
+        TaskPoint(id = "SelectionPoint 1", location = hutyra, task = selectionTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 0.1f),
     )
 
     val toplistEntries = listOf(

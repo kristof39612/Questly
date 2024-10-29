@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -25,9 +26,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
+import hu.bme.aut.szoftverarch.questly.fragments.main.SolveTaskScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.ToplistFragment
 import kotlinx.coroutines.launch
 
@@ -156,10 +160,16 @@ fun MainScreen(drawerState: DrawerState) {
                 startDestination = "home",
                 modifier = Modifier.padding(innerPadding)
             ) {
-                composable("home") { HomeScreenFragment() }
+                composable("home") { HomeScreenFragment(navController) }
                 composable("settings") { SettingsScreen() }
                 composable("profile") { ProfileScreen() }
                 composable("toplist") { ToplistFragment() }
+                composable("solveTask/{taskPointId}") { backStackEntry ->
+                    val taskPointId = backStackEntry.arguments?.getString("taskPointId")
+                    taskPointId?.let {
+                        SolveTaskScreen(navController = navController, taskId = it)
+                    }
+                }
             }
         }
     }
@@ -253,6 +263,33 @@ fun BottomNavigationBar(navController: NavController) {
                     }
                     launchSingleTop = true
                     restoreState = true
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun ConfirmExitDialog(showDialog: MutableState<Boolean>, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            title = { Text("Confirm Exit") },
+            text = { Text("Are you sure you want to leave this task?") },
+            confirmButton = {
+                Button(onClick = {
+                    showDialog.value = false
+                    onConfirm()
+                }) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                Button(onClick = {
+                    showDialog.value = false
+                    onDismiss()
+                }) {
+                    Text("No")
                 }
             }
         )

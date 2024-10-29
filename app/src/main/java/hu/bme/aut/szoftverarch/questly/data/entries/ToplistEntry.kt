@@ -1,4 +1,4 @@
-package hu.bme.aut.szoftverarch.questly.data.toplist
+package hu.bme.aut.szoftverarch.questly.data.entries
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

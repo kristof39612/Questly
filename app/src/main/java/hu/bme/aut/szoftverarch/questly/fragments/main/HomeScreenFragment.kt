@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -47,14 +46,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
+import com.google.gson.Gson
 import com.google.maps.android.compose.Marker
 import hu.bme.aut.szoftverarch.questly.data.tasks.*
+import hu.bme.aut.szoftverarch.questly.data.utils.Converters
+import hu.bme.aut.szoftverarch.questly.data.utils.GsonProvider
 
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreenFragment() {
+fun HomeScreenFragment(navController: NavController) {
     val context = LocalContext.current
     val taskPoints = remember { mutableStateListOf<TaskPoint>() }
     val taskPointDatabase = remember { TaskPointDatabase.getInstance(context) }
@@ -167,7 +170,7 @@ fun HomeScreenFragment() {
                     longitude = taskPoint.location.longitude
                 }
                 val distance = location.distanceTo(taskLocation)
-                isWithinRange = distance <= 15          // In meters -> Specification
+                isWithinRange = distance <= 300          // In meters -> Specification #TODO: 300m-ről átteni
             }
         }
 
@@ -216,11 +219,12 @@ fun HomeScreenFragment() {
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
-                        Toast.makeText(context, "OK!", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(context, "OK!", Toast.LENGTH_SHORT).show()
                         scope.launch {
                             sheetState.hide()
                             selectedTaskPoint.value = null
                         }
+                        navController.navigate("solveTask/${taskPoint.id}")
                     },
                     enabled = isWithinRange
                 ) {
@@ -229,11 +233,4 @@ fun HomeScreenFragment() {
             }
         }
     }
-}
-
-
-@Preview
-@Composable
-fun HomeScreenPreview() {
-    HomeScreenFragment()
 }
