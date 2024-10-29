@@ -29,15 +29,16 @@ fun SettingsScreen() {
     val textpoint = LatLong(47.4977309 + 0.00045, 19.0506962) // ~50m north
     val walkpoint = LatLong(47.4977309, 19.0506962 + 0.00065) // ~50m east
     val selectionpoint = LatLong(47.4977309 - 0.00045, 19.0506962) // ~50m south
-    val sampleTask = TextPromptTask()
-    val textTask = TextPromptTask()
-    val walkTask = GoToPointTask()
-    val selectionTask = SingleChoiceTask()
+    val sampleTask = TextPromptTask(question="What is the capital of Hungary?", answer="Budapest")
+    val textTask = TextPromptTask(question = "What is red and blue?", answer = "Purple")
+    val walkTask = GoToPointTask(where = bpcenter)
+    val selectionTask = SingleChoiceTask(question = "What is the capital of Hungary?", choices = listOf("Budapest", "Vienna", "Berlin", "Prague"), correctAnswer = 0)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val hutyra = LatLong(47.503237, 19.075318)
 
     val taskPoints = listOf(
-        TaskPoint(id = "Point 1", location = bpcenter, task = sampleTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 4.5f),
+        TaskPoint(id = "HPoint 1", location = hutyra, task = sampleTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 4.5f),
         TaskPoint(id = "TextPoint 1", location = textpoint, task = textTask, status = StatusEnum.REJECTED, authorUserId = "sampleUser", rating = 2.5f),
         TaskPoint(id = "WalkPoint 1", location = walkpoint, task = walkTask, status = StatusEnum.PENDING, authorUserId = "sampleUser", rating = 3.55f),
         TaskPoint(id = "SelectionPoint 1", location = selectionpoint, task = selectionTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 0.1f),

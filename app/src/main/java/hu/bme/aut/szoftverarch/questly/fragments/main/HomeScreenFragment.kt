@@ -203,7 +203,7 @@ fun HomeScreenFragment() {
                     }
                     is SingleChoiceTask -> {
                         Text("Question: ${task.question}")
-                        task.answers.forEachIndexed { index, answer ->
+                        task.choices.forEachIndexed { index, answer ->
                             Text("Option ${index + 1}: $answer")
                         }
                         Text("Correct Answer: ${task.correctAnswer + 1}")
