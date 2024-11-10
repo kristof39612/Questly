@@ -4,17 +4,17 @@ plugins {
     id("kotlin-kapt")
     id("com.google.devtools.ksp")
     id("androidx.room")
-    //kotlin("plugin.serialization") version "1.9.24"
+    kotlin("plugin.serialization") version "1.9.24"
 }
 
 android {
     namespace = "hu.bme.aut.szoftverarch.questly"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "hu.bme.aut.szoftverarch.questly"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -81,6 +81,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
+    implementation (libs.retrofit2.retrofit)
+    implementation (libs.converter.gson)
     //implementation(libs.androidx.ui.graphics)
     //implementation(libs.androidx.foundation)
     

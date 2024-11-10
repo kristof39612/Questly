@@ -1,17 +1,33 @@
 package hu.bme.aut.szoftverarch.questly.fragments.main
 
 
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
@@ -19,6 +35,8 @@ import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.SingleChoiceTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.TextPromptTask
 import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
+import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.data.networking.TokenTestRequest
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import kotlinx.coroutines.launch
@@ -36,6 +54,8 @@ fun SettingsScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val hutyra = LatLong(47.503237, 19.075318)
+    val apiService = RetrofitInstance.getAuthorizedApi(context)
+    var showProgress by remember { mutableStateOf(false) }
 
     val taskPoints = listOf(
         TaskPoint(id = "HPoint 1", location = selectionpoint, task = sampleTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 4.5f),
@@ -56,9 +76,31 @@ fun SettingsScreen() {
     val taskPointDao = taskPointDatabase.taskPointDao()
     val toplistDatabase = ToplistDatabase.getInstance(context)
     val toplistDao = toplistDatabase.toplistDao()
-    // Initialize Gson with TaskTypeAdapter
 
     Column(Modifier.padding(16.dp)) {
+
+        if (showProgress) {
+            Dialog(onDismissRequest = { }) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(150.dp)
+                        .background(
+                            color = Color.White,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Waiting...", style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
+
         Text("Debug options")
         Button(onClick = {
             for (taskPoint in taskPoints) { scope.launch {
@@ -77,6 +119,36 @@ fun SettingsScreen() {
         }){
             Text("Insert debug ToplistEntries")
         }
+        Spacer(modifier = Modifier.padding(8.dp))
+        Button(onClick = {
+            showProgress = true
+            scope.launch {
+                try {
+                    val ttr = TokenTestRequest("Test message")
+
+                    val response = apiService.tokenTest(ttr)
+                    if (response.isSuccessful) {
+                        showProgress = false
+                        Toast.makeText(
+                            context,
+                            response.body()?.message ?: "No message",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        context,
+                        "Error: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } finally {
+                    showProgress = false
+                }
+            }
+        }) {
+            Text("Make a test API call")
+        }
+        Text("User Token: ${context.getSharedPreferences("UserData", Context.MODE_PRIVATE).getString("userToken", "No token")}")
     }
 
 

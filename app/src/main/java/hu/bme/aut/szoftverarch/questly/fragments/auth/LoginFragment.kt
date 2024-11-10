@@ -1,14 +1,17 @@
 package hu.bme.aut.szoftverarch.questly.fragments.auth
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,11 +27,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
+import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.Fragment
 import hu.bme.aut.szoftverarch.questly.LoginActivity
 import hu.bme.aut.szoftverarch.questly.MainActivity
 import hu.bme.aut.szoftverarch.questly.R
+import hu.bme.aut.szoftverarch.questly.data.networking.LoginRequest
+import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
     override fun onCreateView(
@@ -50,6 +56,19 @@ fun LoginScreen() {
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val activity = context as? Activity
+    val scope = rememberCoroutineScope()
+    val apiService = RetrofitInstance.api
+    val sharedPreferences = context.getSharedPreferences("UserData",Context.MODE_PRIVATE)
+    var showProgress by remember { mutableStateOf(false) }
+
+    if (sharedPreferences.getString("userToken", null) != null) {
+        context.startActivity(Intent(context, MainActivity::class.java))
+        /*Intent(context, MainActivity::class.java).also {
+            startActivity(context, it, null)
+        }*/
+        activity?.finish()
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -62,6 +81,29 @@ fun LoginScreen() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+
+            if (showProgress) {
+                Dialog(onDismissRequest = { }) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(150.dp)
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator()
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Logging in...", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            }
+
             Image(
                 painter = painterResource(id = R.drawable.placeholder_cat),
                 contentDescription = "Login Placeholder Image",
@@ -111,9 +153,10 @@ fun LoginScreen() {
 
             Button(
                 onClick = {
-                    Intent(context, MainActivity::class.java).also {
+                    context.startActivity(Intent(context, MainActivity::class.java))
+                    /*Intent(context, MainActivity::class.java).also {
                         startActivity(context, it, null)
-                    }
+                    }*/
                     activity?.finish()
                 },
                 modifier = Modifier
@@ -123,6 +166,54 @@ fun LoginScreen() {
                 shape = MaterialTheme.shapes.medium
             ) {
                 Text("Login")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    if (email.isNotEmpty() && password.isNotEmpty()) {
+                        showProgress = true
+                        val lr = LoginRequest(email, password)
+                        scope.launch {
+                            try {
+                                val call = apiService.login(lr)
+                                if (call.isSuccessful) {
+                                    val token = call.body()?.token
+                                    val editor = sharedPreferences.edit()
+                                    editor.putString("userToken", token)
+                                    editor.putString("userEmail", email)
+                                    editor.apply()
+                                    // Save token to shared preferences
+                                    context.startActivity(Intent(context, MainActivity::class.java))
+                                    /*Intent(context, MainActivity::class.java).also {
+                                        startActivity(context, it, null)
+                                    }*/
+                                    activity?.finish()
+                                } else {
+                                    Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    "Unable to reach backend!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } finally {
+                                showProgress = false
+                            }
+
+                        }
+                    } else
+                        Toast.makeText(context, "Please fill out all fields", Toast.LENGTH_SHORT)
+                            .show()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .height(50.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Text("Backend Login")
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -138,6 +229,7 @@ fun LoginScreen() {
             ) {
                 Text("Register")
             }
+
         }
     }
 }

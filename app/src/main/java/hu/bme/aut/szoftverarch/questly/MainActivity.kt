@@ -1,5 +1,7 @@
 package hu.bme.aut.szoftverarch.questly
 
+import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -29,6 +30,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import hu.bme.aut.szoftverarch.questly.fragments.animation.LockScreenOrientation
 import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
@@ -65,7 +67,8 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(drawerState: DrawerState) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
-    //val context = LocalContext.current
+    val context = LocalContext.current
+    val activity = context as MainActivity
     //Database test
     //val taskPointDatabase = TaskPointDatabase.getInstance(context)
     //val taskPointDao = taskPointDatabase.taskPointDao()
@@ -84,7 +87,8 @@ fun MainScreen(drawerState: DrawerState) {
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    Text("Username: placeholder", style = MaterialTheme.typography.bodyLarge)
+                    val username = context.getSharedPreferences("UserData", 0).getString("userEmail", "placeholder")
+                    Text("Username: $username", style = MaterialTheme.typography.bodyLarge)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text("Points: placeholder", style = MaterialTheme.typography.bodyLarge)
                     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
@@ -115,7 +119,15 @@ fun MainScreen(drawerState: DrawerState) {
                     ModernButton(
                         icon = painterResource(id = R.drawable.ic_logout),
                         text = "Logout",
-                        onClick = { /* Handle Logout click */ },
+                        onClick = {
+                            val sp = context.getSharedPreferences("UserData", Context.MODE_PRIVATE)
+                            val editor = sp.edit()
+                            editor.clear()
+                            editor.apply()
+                            val intent = Intent(context, LoginActivity::class.java)
+                            context.startActivity(intent)
+                            activity.finish()
+                        },
                         buttonColor = Color.Red,
                         textColor = Color.White
                     )
@@ -295,20 +307,6 @@ fun ConfirmExitDialog(showDialog: MutableState<Boolean>, onConfirm: () -> Unit, 
                 }
             }
         )
-    }
-}
-
-@Composable
-fun LockScreenOrientation(orientation: Int) {
-    val context = LocalContext.current
-
-    DisposableEffect(Unit) {
-        val activity = context as? ComponentActivity
-        activity?.requestedOrientation = orientation
-
-        onDispose {
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        }
     }
 }
 
