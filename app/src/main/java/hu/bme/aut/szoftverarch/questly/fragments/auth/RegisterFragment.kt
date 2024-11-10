@@ -9,6 +9,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,8 +21,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.Fragment
 import hu.bme.aut.szoftverarch.questly.R
+import hu.bme.aut.szoftverarch.questly.data.networking.RegisterRequest
+import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import kotlinx.coroutines.launch
 
 class RegisterFragment : Fragment() {
     override fun onCreateView(
@@ -56,6 +61,9 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val apiService = RetrofitInstance.api
+    var showProgress by remember { mutableStateOf(false) }
 
     var emailTextFieldColor by remember { mutableStateOf(Color.Transparent) }
 
@@ -85,6 +93,33 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 .background(Color.White)
                 .padding(paddingValues),
         ) {
+
+            if (showProgress) {
+                Dialog(onDismissRequest = { }) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(150.dp)
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            CircularProgressIndicator()
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Registering...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier =
+                                    Modifier.align(Alignment.CenterHorizontally)
+                            )
+                        }
+                    }
+                }
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -155,16 +190,56 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
 
                 Button(
                     onClick = {
-                        if (password == confirmPassword) {
-                            Toast.makeText(context, "Registration successful", Toast.LENGTH_SHORT).show()
+                        if(username.isNotEmpty() && fullName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
+                            if (password == confirmPassword && emailTextFieldColor == Color.Transparent) {
+                                showProgress = true
+                                val rr = RegisterRequest(email, password)
+                                scope.launch {
+                                    try {
+                                        val serverResponse = apiService.register(rr)
+                                        if (serverResponse.isSuccessful) {
+                                            Toast.makeText(
+                                                context,
+                                                "Registration successful",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Registration failed",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "Unable to reach backend!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } finally {
+                                        showProgress = false
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Passwords do not match",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         } else {
-                            Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Please fill out all fields",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Register")
+                    Text("Backend register")
                 }
+
             }
         }
     }

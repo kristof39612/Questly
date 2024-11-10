@@ -4,22 +4,22 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
+import hu.bme.aut.szoftverarch.questly.data.entries.LogEntry
 
-@Database(entities = [ToplistEntry::class], version = 1)
-abstract class ToplistDatabase : RoomDatabase() {
-    abstract fun toplistDao(): ToplistDao
+@Database(entities = [LogEntry::class], version = 1)
+abstract class LogEntryDatabase : RoomDatabase() {
+    abstract fun logEntryDao(): LogEntryDao
 
     companion object {
         @Volatile
-        private var INSTANCE: ToplistDatabase? = null
+        private var INSTANCE: LogEntryDatabase? = null
 
-        fun getInstance(context: Context): ToplistDatabase {
+        fun getInstance(context: Context): LogEntryDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    ToplistDatabase::class.java,
-                    "toplist_database"
+                    LogEntryDatabase::class.java,
+                    "logentry_database"
                 ).build()
                 INSTANCE = instance
                 instance

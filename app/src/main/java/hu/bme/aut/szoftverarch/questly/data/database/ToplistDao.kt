@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import hu.bme.aut.szoftverarch.questly.data.toplist.ToplistEntry
+import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 
 @Dao
 interface ToplistDao {

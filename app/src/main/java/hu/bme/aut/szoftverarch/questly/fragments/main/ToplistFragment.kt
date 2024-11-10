@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
-import hu.bme.aut.szoftverarch.questly.data.toplist.ToplistEntry
+import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
