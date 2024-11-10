@@ -25,7 +25,23 @@ import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.tasks.*
 import kotlinx.coroutines.launch
+import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import android.Manifest
+import android.graphics.BitmapFactory
+import android.widget.Toast
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
+import java.io.File
+import java.io.FileOutputStream
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SolveTaskScreen(navController: NavController, taskId: String) {
     val context = LocalContext.current
@@ -36,6 +52,38 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
     val taskPoint = remember { mutableStateOf<TaskPoint?>(null) }
     var answer by remember { mutableStateOf("") }
     var selectedChoice by remember { mutableIntStateOf(-1) }
+    val camPermissionState =  rememberPermissionState(Manifest.permission.CAMERA)
+    var imageFilePath by rememberSaveable { mutableStateOf<String?>(null) }
+    val imageBitmap = imageFilePath?.let { BitmapFactory.decodeFile(it) }
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+        if (bitmap != null) {
+            // Save the bitmap to a cache file
+            val file = File(context.cacheDir, "temp_image.jpg")
+            val outputStream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+            outputStream.flush()
+            outputStream.close()
+            imageFilePath = file.absolutePath
+        }
+    }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(camPermissionState) {
+        if (!camPermissionState.status.isGranted && camPermissionState.status.shouldShowRationale) {
+            Toast.makeText(context, "Please grant Camera permission", Toast.LENGTH_SHORT)
+                .show()
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     LaunchedEffect(Unit) {
         scope.launch {
@@ -148,15 +196,25 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                         .height(200.dp)
                         .background(Color.Gray)
                         .clickable {
-
+                            if(camPermissionState.status.isGranted){
+                                launcher.launch(null)
+                            //Toast.makeText(context, "Camera permission granted", Toast.LENGTH_SHORT).show()
+                            } else {
+                                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Tap to take a picture",
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    if (imageBitmap != null) {
+                        Image(
+                            bitmap = imageBitmap.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+
+                        Text("Tap to take a picture", color = Color.White)
+                    }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(

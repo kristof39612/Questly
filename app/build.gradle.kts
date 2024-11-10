@@ -81,6 +81,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
+    //implementation(libs.androidx.ui.graphics)
+    //implementation(libs.androidx.foundation)
     
     // GugliMapz
     implementation(libs.maps.compose)

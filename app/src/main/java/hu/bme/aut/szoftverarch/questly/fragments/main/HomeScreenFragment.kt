@@ -49,7 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.Marker
-import hu.bme.aut.szoftverarch.questly.data.tasks.*
+import hu.bme.aut.szoftverarch.questly.fragments.animation.StarRating
 
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
@@ -191,9 +191,9 @@ fun HomeScreenFragment(navController: NavController) {
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-
+                StarRating(rating = taskPoint.rating)
                 // Display task-specific details
-                when (val task = taskPoint.task) {
+                /*when (val task = taskPoint.task) {
                     is TextPromptTask -> {
                         Text("Question: ${task.question}")
                         Text("Answer: ${task.answer}")
@@ -211,7 +211,9 @@ fun HomeScreenFragment(navController: NavController) {
                     else -> {
                         Text("Unknown task type")
                     }
-                }
+                }*/
+                Text("Task ID: ${taskPoint.id}")
+                Text("Location: ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
