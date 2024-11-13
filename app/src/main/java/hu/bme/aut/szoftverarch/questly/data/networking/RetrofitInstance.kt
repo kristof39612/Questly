@@ -1,11 +1,17 @@
 package hu.bme.aut.szoftverarch.questly.data.networking
 
 import android.content.Context
+import com.google.gson.GsonBuilder
+import hu.bme.aut.szoftverarch.questly.data.tasks.Task
+import hu.bme.aut.szoftverarch.questly.data.utils.GsonProvider
+import hu.bme.aut.szoftverarch.questly.data.utils.TaskTypeAdapter
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import hu.bme.aut.szoftverarch.questly.data.utils.gcf
 
 object RetrofitInstance {
+    //private const val BASE_URL = "http://vm.niif.cloud.bme.hu:18845/"
     private const val BASE_URL = "http://192.168.1.198:8080"
     val api: ApiService by lazy {
         val retrofit = Retrofit.Builder()
@@ -27,7 +33,7 @@ object RetrofitInstance {
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)  // Add the OkHttp client with the interceptor
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(gcf())
             .build()
 
         return retrofit.create(ApiService::class.java)

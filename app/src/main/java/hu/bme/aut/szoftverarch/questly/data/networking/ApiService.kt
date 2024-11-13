@@ -5,6 +5,9 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import okhttp3.Interceptor
 import android.content.SharedPreferences
+import hu.bme.aut.szoftverarch.questly.data.TaskPoint
+import retrofit2.http.GET
+import retrofit2.http.Path
 
 interface ApiService {
     @POST("/auth/login")
@@ -13,8 +16,14 @@ interface ApiService {
     @POST("/auth/register")
     suspend fun register(@Body request: RegisterRequest) : retrofit2.Response<RegisterResponse>
 
-    @POST("/api/v1/test")
-    suspend fun tokenTest(@Body request: TokenTestRequest) : retrofit2.Response<TokenTestResponse>
+    @GET("/api/v1/test")
+    suspend fun tokenTest(/*@Body request: TokenTestRequest*/) : retrofit2.Response<TokenTestResponse>
+
+    @GET("/taskpoint/{id}")
+    suspend fun getTaskPointById(@Path("id") id: String): retrofit2.Response<TaskPoint>
+
+    @POST("/taskpoint")
+    suspend fun createTaskPoint(@Body taskPoint: TaskPoint): retrofit2.Response<TaskPoint>
 }
 
 @Serializable
@@ -47,7 +56,8 @@ data class TokenTestRequest(
 
 @Serializable
 data class TokenTestResponse(
-    val message: String
+    val token: String,
+    val errorMessage: String
 )
 
 class AuthInterceptor(private val sharedPreferences: SharedPreferences) : Interceptor {

@@ -2,16 +2,16 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "51d089a35bb101fda7394167ae91a284",
+    "identityHash": "95abcf1d7aa5f5e0907edffd49afa70f",
     "entities": [
       {
         "tableName": "logentry",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `visitedPointId` TEXT NOT NULL, `visitDate` TEXT NOT NULL, `userId` TEXT NOT NULL, `givenRating` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `visitedPointId` TEXT NOT NULL, `visitDate` TEXT NOT NULL, `userId` TEXT NOT NULL, `givenRating` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -52,7 +52,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '51d089a35bb101fda7394167ae91a284')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '95abcf1d7aa5f5e0907edffd49afa70f')"
     ]
   }
 }

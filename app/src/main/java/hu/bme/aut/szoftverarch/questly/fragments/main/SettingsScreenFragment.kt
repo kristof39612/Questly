@@ -36,7 +36,6 @@ import hu.bme.aut.szoftverarch.questly.data.tasks.SingleChoiceTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.TextPromptTask
 import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
-import hu.bme.aut.szoftverarch.questly.data.networking.TokenTestRequest
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import kotlinx.coroutines.launch
@@ -58,10 +57,10 @@ fun SettingsScreen() {
     var showProgress by remember { mutableStateOf(false) }
 
     val taskPoints = listOf(
-        TaskPoint(id = "HPoint 1", location = selectionpoint, task = sampleTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 4.5f),
-        TaskPoint(id = "TextPoint 1", location = textpoint, task = textTask, status = StatusEnum.REJECTED, authorUserId = "sampleUser", rating = 2.5f),
-        TaskPoint(id = "WalkPoint 1", location = walkpoint, task = walkTask, status = StatusEnum.PENDING, authorUserId = "sampleUser", rating = 3.55f),
-        TaskPoint(id = "SelectionPoint 1", location = hutyra, task = selectionTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 0.1f),
+        TaskPoint(id = 1, location = selectionpoint, task = sampleTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 4.5f, title = "XD"),
+        TaskPoint(id = 2, location = textpoint, task = textTask, status = StatusEnum.REJECTED, authorUserId = "sampleUser", rating = 2.5f,title = "XD"),
+        TaskPoint(id = 3, location = walkpoint, task = walkTask, status = StatusEnum.PENDING, authorUserId = "sampleUser", rating = 3.55f, title = "XD"),
+        TaskPoint(id = 4, location = hutyra, task = selectionTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 0.1f, title = "XD"),
     )
 
     val toplistEntries = listOf(
@@ -124,14 +123,42 @@ fun SettingsScreen() {
             showProgress = true
             scope.launch {
                 try {
-                    val ttr = TokenTestRequest("Test message")
 
-                    val response = apiService.tokenTest(ttr)
+                    val response = apiService.getTaskPointById("2")
                     if (response.isSuccessful) {
                         showProgress = false
                         Toast.makeText(
                             context,
-                            response.body()?.message ?: "No message",
+                            response.body()?.title ?: "No message",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        context,
+                        "Error: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } finally {
+                    showProgress = false
+                }
+            }
+        }) {
+            Text("Query TaskPoint by ID")
+        }
+        Spacer(modifier = Modifier.padding(8.dp))
+        Button(onClick = {
+            showProgress = true
+            scope.launch {
+                try {
+
+                    val tpt = TaskPoint(title = "XD", id = 2, location = hutyra, task = sampleTask, status = StatusEnum.PENDING, authorUserId = "sampleUser", rating = 0.0f)
+                    val response = apiService.createTaskPoint(tpt)
+                    if (response.isSuccessful) {
+                        showProgress = false
+                        Toast.makeText(
+                            context,
+                            response.body()?.title ?: "No message",
                             Toast.LENGTH_SHORT
                         ).show()
                     }

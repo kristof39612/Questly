@@ -55,7 +55,6 @@ class RegisterFragment : Fragment() {
 @Composable
 fun RegisterScreen(onBackPressed: () -> Unit) {
     var username by remember { mutableStateOf("") }
-    var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -137,15 +136,6 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 TextField(
-                    value = fullName,
-                    onValueChange = { fullName = it },
-                    label = { Text("Full Name") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                TextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
@@ -190,7 +180,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
 
                 Button(
                     onClick = {
-                        if(username.isNotEmpty() && fullName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
+                        if(username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
                             if (password == confirmPassword && emailTextFieldColor == Color.Transparent) {
                                 showProgress = true
                                 val rr = RegisterRequest(email, password)
