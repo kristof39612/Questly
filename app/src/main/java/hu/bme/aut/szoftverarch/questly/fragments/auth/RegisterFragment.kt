@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -77,7 +78,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Register") },
+                title = { Text(stringResource(R.string.register)) },
                 navigationIcon = {
                     IconButton(onClick = { onBackPressed() }) {
                         Icon(painter = painterResource(id = R.drawable.ic_back), contentDescription = "Back")
@@ -109,7 +110,8 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                         ) {
                             CircularProgressIndicator()
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Registering...",
+                            Text(
+                                stringResource(R.string.registering),
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier =
                                     Modifier.align(Alignment.CenterHorizontally)
@@ -129,7 +131,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 TextField(
                     value = username,
                     onValueChange = { username = it },
-                    label = { Text("Username") },
+                    label = { Text(stringResource(R.string.username)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -138,7 +140,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 TextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.Email)) },
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -150,7 +152,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 TextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
+                    label = { Text(stringResource(R.string.Password)) },
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
@@ -171,7 +173,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 TextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    label = { Text("Confirm Password") },
+                    label = { Text(stringResource(R.string.ConfirmPassword)) },
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
@@ -190,20 +192,20 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                                         if (serverResponse.isSuccessful) {
                                             Toast.makeText(
                                                 context,
-                                                "Registration successful",
+                                                R.string.RegisterSuccess,
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         } else {
                                             Toast.makeText(
                                                 context,
-                                                "Registration failed",
+                                                R.string.RegisterFailed,
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                     } catch (e: Exception) {
                                         Toast.makeText(
                                             context,
-                                            "Unable to reach backend!",
+                                            R.string.backendUnavailable,
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     } finally {
@@ -213,21 +215,21 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "Passwords do not match",
+                                    R.string.PasswordsDoNotMatch,
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
                         } else {
                             Toast.makeText(
                                 context,
-                                "Please fill out all fields",
+                                R.string.fillOutAllFields,
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Backend register")
+                    Text("Backend " + stringResource(R.string.register))
                 }
 
             }

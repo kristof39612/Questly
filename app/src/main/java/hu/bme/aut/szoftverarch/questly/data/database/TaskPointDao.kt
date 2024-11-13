@@ -21,4 +21,7 @@ interface TaskPointDao {
     @Delete
     suspend fun delete(taskPoint: TaskPoint)
 
+    @Query("DELETE FROM taskpoints")
+    suspend fun deleteAll()
+
 }

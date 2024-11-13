@@ -29,7 +29,8 @@ interface ApiService {
     @GET("/leaderboard")
     suspend fun getToplist(): retrofit2.Response<List<ToplistEntry>>
 
-
+    @GET("/user/points")
+    suspend fun getUserPoints(): retrofit2.Response<ToplistUserPointsResponse>
 }
 
 @Serializable
@@ -53,6 +54,12 @@ data class RegisterRequest(
 data class RegisterResponse(
     val token: String,
     val errorMessage: String
+)
+
+@Serializable
+data class ToplistUserPointsResponse(
+    val username: String,
+    val points: Int,
 )
 
 class AuthInterceptor(private val sharedPreferences: SharedPreferences) : Interceptor {

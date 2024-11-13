@@ -18,4 +18,6 @@ interface ToplistDao {
     @Delete
     suspend fun delete(toplistEntry: ToplistEntry)
 
+    @Query("DELETE FROM toplist")
+    suspend fun deleteAll()
 }

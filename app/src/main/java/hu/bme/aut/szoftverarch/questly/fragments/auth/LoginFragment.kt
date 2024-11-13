@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -63,9 +64,6 @@ fun LoginScreen() {
 
     if (sharedPreferences.getString("userToken", null) != null) {
         context.startActivity(Intent(context, MainActivity::class.java))
-        /*Intent(context, MainActivity::class.java).also {
-            startActivity(context, it, null)
-        }*/
         activity?.finish()
     }
 
@@ -98,7 +96,7 @@ fun LoginScreen() {
                         ) {
                             CircularProgressIndicator()
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Logging in...", style = MaterialTheme.typography.bodyMedium)
+                            Text(stringResource(R.string.loggingin), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
@@ -118,7 +116,7 @@ fun LoginScreen() {
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.Email)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
                 modifier = Modifier
@@ -130,7 +128,7 @@ fun LoginScreen() {
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text(stringResource(R.string.Password)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
@@ -182,20 +180,17 @@ fun LoginScreen() {
                                     editor.putString("userToken", token)
                                     editor.putString("userEmail", email)
                                     editor.apply()
-                                    // Save token to shared preferences
+                                    // Save token
                                     context.startActivity(Intent(context, MainActivity::class.java))
-                                    /*Intent(context, MainActivity::class.java).also {
-                                        startActivity(context, it, null)
-                                    }*/
                                     activity?.finish()
                                 } else {
-                                    Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT)
+                                    Toast.makeText(context, R.string.LoginFailed, Toast.LENGTH_SHORT)
                                         .show()
                                 }
                             } catch (e: Exception) {
                                 Toast.makeText(
                                     context,
-                                    "Unable to reach backend!",
+                                    R.string.backendUnavailable,
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } finally {
@@ -204,7 +199,7 @@ fun LoginScreen() {
 
                         }
                     } else
-                        Toast.makeText(context, "Please fill out all fields", Toast.LENGTH_SHORT)
+                        Toast.makeText(context, R.string.fillOutAllFields, Toast.LENGTH_SHORT)
                             .show()
                 },
                 modifier = Modifier
@@ -213,7 +208,7 @@ fun LoginScreen() {
                     .height(50.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text("Backend Login")
+                Text("Backend " + stringResource(R.string.login))
             }
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -227,7 +222,7 @@ fun LoginScreen() {
                     .height(50.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text("Register")
+                Text(stringResource(R.string.register))
             }
 
         }

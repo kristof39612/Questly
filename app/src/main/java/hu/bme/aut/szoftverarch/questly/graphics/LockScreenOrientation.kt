@@ -1,4 +1,4 @@
-package hu.bme.aut.szoftverarch.questly.fragments.animation
+package hu.bme.aut.szoftverarch.questly.graphics
 
 import android.content.pm.ActivityInfo
 import androidx.activity.ComponentActivity

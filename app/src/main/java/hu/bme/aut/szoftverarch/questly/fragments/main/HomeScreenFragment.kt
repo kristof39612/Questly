@@ -46,10 +46,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.Marker
-import hu.bme.aut.szoftverarch.questly.fragments.animation.StarRating
+import hu.bme.aut.szoftverarch.questly.graphics.StarRating
 
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
@@ -81,13 +82,13 @@ fun HomeScreenFragment(navController: NavController) {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
-            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.PermissionDenied, Toast.LENGTH_SHORT).show()
         }
     }
 
     LaunchedEffect(gpsPermissionState) {
         if (!gpsPermissionState.status.isGranted && gpsPermissionState.status.shouldShowRationale) {
-            Toast.makeText(context, "Please grant GPS location permission", Toast.LENGTH_SHORT)
+            Toast.makeText(context, R.string.gpsbegging, Toast.LENGTH_SHORT)
                 .show()
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -153,7 +154,7 @@ fun HomeScreenFragment(navController: NavController) {
             Button(onClick = {
                 requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }) {
-                Text("Grant permission")
+                Text(stringResource(R.string.grantPermission))
             }
         }
     }
@@ -212,8 +213,8 @@ fun HomeScreenFragment(navController: NavController) {
                         Text("Unknown task type")
                     }
                 }*/
-                Text("Task ID: ${taskPoint.id}")
-                Text("Location: ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
+                Text(stringResource(R.string.taskIdLabel) + " ${taskPoint.id}")
+                Text(stringResource(R.string.locationLabel)+": ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
@@ -227,7 +228,7 @@ fun HomeScreenFragment(navController: NavController) {
                     },
                     enabled = isWithinRange
                 ) {
-                    Text("Start")
+                    Text(stringResource(R.string.start))
                 }
             }
         }
