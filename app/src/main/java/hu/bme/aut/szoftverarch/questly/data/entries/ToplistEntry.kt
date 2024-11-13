@@ -5,6 +5,6 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "toplist")
 class ToplistEntry(
-    @PrimaryKey val userId: String,
-    var earnedPoints: Int,
+    @PrimaryKey val username: String,
+    var points: Int,
 )

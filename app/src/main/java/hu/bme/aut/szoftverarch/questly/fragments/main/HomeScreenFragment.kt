@@ -46,10 +46,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.Marker
-import hu.bme.aut.szoftverarch.questly.fragments.animation.StarRating
+import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.data.networking.StartStopTaskRequest
+import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
+import hu.bme.aut.szoftverarch.questly.graphics.StarRating
 
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
@@ -65,34 +69,10 @@ fun HomeScreenFragment(navController: NavController) {
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var userLocation by remember { mutableStateOf<Location?>(null) }
     var isWithinRange by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        scope.launch {
-            val points = taskPointDao.queryAll()
-            taskPoints.addAll(points)
-        }
-    }
-
     val gpsPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
     val bpcenter = LatLng(47.4977309, 19.0506962)
-
-    // Initial permission request
-    val requestPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (!isGranted) {
-            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    LaunchedEffect(gpsPermissionState) {
-        if (!gpsPermissionState.status.isGranted && gpsPermissionState.status.shouldShowRationale) {
-            Toast.makeText(context, "Please grant GPS location permission", Toast.LENGTH_SHORT)
-                .show()
-        } else {
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-    }
+    val apiService = RetrofitInstance.getAuthorizedApi(context)
+    var showProgress by remember { mutableStateOf(false) }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(bpcenter, 15f)
@@ -103,6 +83,34 @@ fun HomeScreenFragment(navController: NavController) {
 
     val mapProperties = remember {
         MapProperties(isMyLocationEnabled = true)
+    }
+    LaunchedEffect(Unit) {
+        scope.launch {
+            val points = taskPointDao.queryAll()
+            taskPoints.addAll(points)
+        }
+    }
+
+    if(showProgress){
+        LoadingDialog()
+    }
+
+    // Initial permission request
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(context, R.string.PermissionDenied, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(gpsPermissionState) {
+        if (!gpsPermissionState.status.isGranted && gpsPermissionState.status.shouldShowRationale) {
+            Toast.makeText(context, R.string.gpsbegging, Toast.LENGTH_SHORT)
+                .show()
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
     }
 
     if (gpsPermissionState.status.isGranted) {
@@ -153,7 +161,7 @@ fun HomeScreenFragment(navController: NavController) {
             Button(onClick = {
                 requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }) {
-                Text("Grant permission")
+                Text(stringResource(R.string.grantPermission))
             }
         }
     }
@@ -212,22 +220,34 @@ fun HomeScreenFragment(navController: NavController) {
                         Text("Unknown task type")
                     }
                 }*/
-                Text("Task ID: ${taskPoint.id}")
-                Text("Location: ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
+                Text(stringResource(R.string.taskIdLabel) + " ${taskPoint.id}")
+                Text(stringResource(R.string.locationLabel)+": ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
-                        //Toast.makeText(context, "OK!", Toast.LENGTH_SHORT).show()
+                        showProgress = true
                         scope.launch {
                             sheetState.hide()
                             selectedTaskPoint.value = null
+                            val req = StartStopTaskRequest(taskPoint.id)
+                            try{
+                                val response = apiService.startTask(req)
+                                if(response.isSuccessful){
+                                    navController.navigate("solveTask/${taskPoint.id}")
+                                } else {
+                                    Toast.makeText(context, R.string.taskStartFailed, Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, R.string.taskStartFailed, Toast.LENGTH_SHORT).show()
+                            } finally {
+                                showProgress = false
+                            }
                         }
-                        navController.navigate("solveTask/${taskPoint.id}")
                     },
                     enabled = isWithinRange
                 ) {
-                    Text("Start")
+                    Text(stringResource(R.string.start))
                 }
             }
         }

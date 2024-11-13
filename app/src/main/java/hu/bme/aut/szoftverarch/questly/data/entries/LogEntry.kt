@@ -7,7 +7,7 @@ import java.util.Date
 @Entity(tableName = "logentry")
 class LogEntry {
     @PrimaryKey
-    var id: String = ""
+    var id: Long = 0
     var visitedPointId: String = ""
     // #TODO: Photo
     var visitDate: String = Date().toString()

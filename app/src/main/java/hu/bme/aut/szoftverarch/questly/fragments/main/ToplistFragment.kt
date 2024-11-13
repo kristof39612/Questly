@@ -78,12 +78,12 @@ fun ToplistFragment() {
                         Spacer(modifier = Modifier.weight(0.1f))
                     }
                     Text(
-                        text = entry.userId,
+                        text = entry.username,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(0.4f)
                     )
                     Text(
-                        text = "${entry.earnedPoints} points",
+                        text = "${entry.points} points",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(0.5f)
                     )

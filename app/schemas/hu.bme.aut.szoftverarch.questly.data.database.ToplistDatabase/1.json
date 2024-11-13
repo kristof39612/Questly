@@ -2,21 +2,21 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "56b1f8e347d2de4cd3ae0c88a8fc0294",
+    "identityHash": "9f937ebaeb67e9db15de6c83dc01c598",
     "entities": [
       {
         "tableName": "toplist",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `earnedPoints` INTEGER NOT NULL, PRIMARY KEY(`userId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`username` TEXT NOT NULL, `points` INTEGER NOT NULL, PRIMARY KEY(`username`))",
         "fields": [
           {
-            "fieldPath": "userId",
-            "columnName": "userId",
+            "fieldPath": "username",
+            "columnName": "username",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "earnedPoints",
-            "columnName": "earnedPoints",
+            "fieldPath": "points",
+            "columnName": "points",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -24,7 +24,7 @@
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "userId"
+            "username"
           ]
         },
         "indices": [],
@@ -34,7 +34,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '56b1f8e347d2de4cd3ae0c88a8fc0294')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9f937ebaeb67e9db15de6c83dc01c598')"
     ]
   }
 }

@@ -12,12 +12,13 @@ import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 @Entity(tableName = "taskpoints")
 @TypeConverters(Converters::class)
 class TaskPoint(
-    @PrimaryKey val id: String,
+    @PrimaryKey val id: Long,
     var task: Task,
     var status: StatusEnum,
     var location: LatLong,
     var authorUserId: String,
-    var rating: Float
+    var rating: Float,
+    var title: String,
 ){
     fun getGoogleLatLng(): LatLng {
         return LatLng(location.latitude, location.longitude)

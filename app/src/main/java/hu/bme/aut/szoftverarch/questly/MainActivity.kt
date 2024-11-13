@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -13,15 +14,25 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -30,17 +41,22 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import hu.bme.aut.szoftverarch.questly.fragments.animation.LockScreenOrientation
+import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
+import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
+import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.graphics.LockScreenOrientation
 import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SolveTaskScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.ToplistFragment
+import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
         //Main Content
     setContent {
         LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
@@ -69,9 +85,63 @@ fun MainScreen(drawerState: DrawerState) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val activity = context as MainActivity
-    //Database test
-    //val taskPointDatabase = TaskPointDatabase.getInstance(context)
-    //val taskPointDao = taskPointDatabase.taskPointDao()
+    val taskPointDatabase = TaskPointDatabase.getInstance(context)
+    val taskPointDao = taskPointDatabase.taskPointDao()
+    val toplistDatabase = ToplistDatabase.getInstance(context)
+    val toplistDao = toplistDatabase.toplistDao()
+    val apiService = RetrofitInstance.getAuthorizedApi(context)
+    var showProgress by remember { mutableStateOf(false) }
+    var userPoints by remember { mutableIntStateOf(0) }
+    var userName by remember { mutableStateOf("Anonymus") }
+
+    if (showProgress) {
+        LoadingDialog()
+    }
+
+    fun refreshFromBackend() {
+       showProgress = true
+       scope.launch {
+           try {
+               val response = apiService.getTaskPoints()
+               if (response.isSuccessful) {
+                   taskPointDao.deleteAll()
+                   for (taskPoint in response.body()!!) {
+                       taskPointDao.insertAll(taskPoint)
+                   }
+               }
+           } catch (e: Exception) {
+               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+           }
+           try {
+               val response = apiService.getToplist()
+               if (response.isSuccessful) {
+                   toplistDao.deleteAll()
+                   for (entry in response.body()!!){
+                       toplistDao.insertAll(entry)
+                   }
+               }
+           } catch (e: Exception) {
+               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+           }
+           try {
+               val response = apiService.getUserPoints()
+               if (response.isSuccessful) {
+                   val points = response.body()?.points
+                   userName = response.body()?.username ?: "Anonymus"
+                   userPoints = points ?: 0
+               }
+           } catch (e: Exception) {
+               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+           } finally {
+               showProgress = false
+           }
+
+       }
+   }
+
+    LaunchedEffect(Unit) {
+        refreshFromBackend()
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -88,37 +158,35 @@ fun MainScreen(drawerState: DrawerState) {
                         .padding(16.dp)
                 ) {
                     val username = context.getSharedPreferences("UserData", 0).getString("userEmail", "placeholder")
-                    Text("Username: $username", style = MaterialTheme.typography.bodyLarge)
+                    Text(buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(stringResource(R.string.usernameLabel)+ " ")
+                        }
+                        append(username)
+                    }, style = MaterialTheme.typography.bodyLarge)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Points: placeholder", style = MaterialTheme.typography.bodyLarge)
+                    Text(buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append(stringResource(R.string.pointLabel) + " ")
+                        }
+                        append(userPoints.toString())
+                    }, style = MaterialTheme.typography.bodyLarge)
                     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                     ModernButton(
                         icon = painterResource(id = R.drawable.ic_handyman),
-                        text = "Editor",
+                        text = stringResource(R.string.editor),
                         onClick = { /* Handle Map Editor click */ }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     ModernButton(
                         icon = painterResource(id = R.drawable.ic_menu_book),
-                        text = "Log",
+                        text = stringResource(R.string.log),
                         onClick = { /* Handle Log click */ }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ModernButton(
-                        icon = painterResource(id = R.drawable.ic_menu_gallery),
-                        text = "Menu1",
-                        onClick = { /* Handle Menu1 click */ }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ModernButton(
-                        icon = painterResource(id = R.drawable.ic_menu_gallery),
-                        text = "Menu2",
-                        onClick = { /* Handle Menu2 click */ }
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     ModernButton(
                         icon = painterResource(id = R.drawable.ic_logout),
-                        text = "Logout",
+                        text = stringResource(R.string.logout),
                         onClick = {
                             val sp = context.getSharedPreferences("UserData", Context.MODE_PRIVATE)
                             val editor = sp.edit()
@@ -145,11 +213,12 @@ fun MainScreen(drawerState: DrawerState) {
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("Questly")
+                                Text(stringResource(R.string.app_name))
                             }
                             //Spacer(modifier = Modifier.weight(0.1f))
                             Column(modifier = Modifier.weight(0.13f)) {
-                                IconButton(onClick = {      //TODO: Refresh operations
+                                IconButton(onClick = {
+                                    refreshFromBackend()
                                 }){
                                     Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                                 }
@@ -226,7 +295,7 @@ fun BottomNavigationBar(navController: NavController) {
     NavigationBar {
         NavigationBarItem(
             icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
-            label = { Text("Home") },
+            label = { Text(stringResource(R.string.homeMenu)) },
             selected = currentDestination?.hierarchy?.any { it.route == "home" } == true,
             onClick = {
                 navController.navigate("home") {
@@ -240,7 +309,7 @@ fun BottomNavigationBar(navController: NavController) {
         )
         NavigationBarItem(
             icon = { Icon(painterResource(id = R.drawable.ic_trophy), contentDescription = "Toplist") },
-            label = { Text("Toplist") },
+            label = { Text(stringResource(R.string.toplistMenu)) },
             selected = currentDestination?.hierarchy?.any { it.route == "toplist" } == true,
             onClick = {
                 navController.navigate("toplist") {
@@ -254,7 +323,7 @@ fun BottomNavigationBar(navController: NavController) {
         )
         NavigationBarItem(
             icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
-            label = { Text("Settings") },
+            label = { Text(stringResource(R.string.settingsMenu)) },
             selected = currentDestination?.hierarchy?.any { it.route == "settings" } == true,
             onClick = {
                 navController.navigate("settings") {
@@ -268,7 +337,7 @@ fun BottomNavigationBar(navController: NavController) {
         )
         NavigationBarItem(
             icon = { Icon(Icons.Filled.Person, contentDescription = "Profile") },
-            label = { Text("Profile") },
+            label = { Text(stringResource(R.string.profileMenu)) },
             selected = currentDestination?.hierarchy?.any { it.route == "profile" } == true,
             onClick = {
                 navController.navigate("profile") {

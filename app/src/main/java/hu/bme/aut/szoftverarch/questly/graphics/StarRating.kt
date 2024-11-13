@@ -1,4 +1,4 @@
-package hu.bme.aut.szoftverarch.questly.fragments.animation
+package hu.bme.aut.szoftverarch.questly.graphics
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box

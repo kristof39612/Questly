@@ -9,7 +9,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,14 +17,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.fragment.app.Fragment
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.networking.RegisterRequest
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
 
 class RegisterFragment : Fragment() {
@@ -55,7 +55,6 @@ class RegisterFragment : Fragment() {
 @Composable
 fun RegisterScreen(onBackPressed: () -> Unit) {
     var username by remember { mutableStateOf("") }
-    var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -78,7 +77,8 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Register") },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF87CEEB)),
+                title = { Text(stringResource(R.string.register)) },
                 navigationIcon = {
                     IconButton(onClick = { onBackPressed() }) {
                         Icon(painter = painterResource(id = R.drawable.ic_back), contentDescription = "Back")
@@ -88,36 +88,15 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
         }
     ) { paddingValues ->
         Surface(
+            color = Color(0xFF87CEEB),
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(Color.LightGray)
                 .padding(paddingValues),
         ) {
 
             if (showProgress) {
-                Dialog(onDismissRequest = { }) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(150.dp)
-                            .background(
-                                color = Color.White,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            CircularProgressIndicator()
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text("Registering...",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier =
-                                    Modifier.align(Alignment.CenterHorizontally)
-                            )
-                        }
-                    }
-                }
+               LoadingDialog(stringResource(R.string.registering))
             }
 
             Column(
@@ -130,16 +109,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 TextField(
                     value = username,
                     onValueChange = { username = it },
-                    label = { Text("Username") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                TextField(
-                    value = fullName,
-                    onValueChange = { fullName = it },
-                    label = { Text("Full Name") },
+                    label = { Text(stringResource(R.string.username)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -148,7 +118,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 TextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.Email)) },
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -160,7 +130,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 TextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
+                    label = { Text(stringResource(R.string.Password)) },
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
@@ -181,7 +151,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 TextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    label = { Text("Confirm Password") },
+                    label = { Text(stringResource(R.string.ConfirmPassword)) },
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
@@ -190,7 +160,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
 
                 Button(
                     onClick = {
-                        if(username.isNotEmpty() && fullName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
+                        if(username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
                             if (password == confirmPassword && emailTextFieldColor == Color.Transparent) {
                                 showProgress = true
                                 val rr = RegisterRequest(email, password)
@@ -200,20 +170,20 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                                         if (serverResponse.isSuccessful) {
                                             Toast.makeText(
                                                 context,
-                                                "Registration successful",
+                                                R.string.RegisterSuccess,
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         } else {
                                             Toast.makeText(
                                                 context,
-                                                "Registration failed",
+                                                R.string.RegisterFailed,
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                     } catch (e: Exception) {
                                         Toast.makeText(
                                             context,
-                                            "Unable to reach backend!",
+                                            R.string.backendUnavailable,
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     } finally {
@@ -223,21 +193,21 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "Passwords do not match",
+                                    R.string.PasswordsDoNotMatch,
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
                         } else {
                             Toast.makeText(
                                 context,
-                                "Please fill out all fields",
+                                R.string.fillOutAllFields,
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Backend register")
+                    Text("Backend " + stringResource(R.string.register))
                 }
 
             }

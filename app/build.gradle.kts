@@ -98,6 +98,13 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.gson)
 
+    //ExoPlayer
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
+
+    // Hide status bar
+    implementation (libs.google.accompanist.systemuicontroller)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
