@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Questly</string>
-    <string name="loggingin">Logging in...</string>
-    <string name="registering">Registering...</string>
+    <string name="loggingin">Logging in…</string>
+    <string name="registering">Registering…</string>
     <string name="login">Login</string>
     <string name="logout">Logout</string>
     <string name="register">Register</string>
