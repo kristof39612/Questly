@@ -1,10 +1,6 @@
 package hu.bme.aut.szoftverarch.questly.data.networking
 
 import android.content.Context
-import com.google.gson.GsonBuilder
-import hu.bme.aut.szoftverarch.questly.data.tasks.Task
-import hu.bme.aut.szoftverarch.questly.data.utils.GsonProvider
-import hu.bme.aut.szoftverarch.questly.data.utils.TaskTypeAdapter
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

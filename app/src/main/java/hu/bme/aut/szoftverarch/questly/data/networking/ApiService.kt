@@ -16,9 +16,6 @@ interface ApiService {
     @POST("/auth/register")
     suspend fun register(@Body request: RegisterRequest) : retrofit2.Response<RegisterResponse>
 
-    @GET("/api/v1/test")
-    suspend fun tokenTest(/*@Body request: TokenTestRequest*/) : retrofit2.Response<TokenTestResponse>
-
     @GET("/taskpoint/{id}")
     suspend fun getTaskPointById(@Path("id") id: String): retrofit2.Response<TaskPoint>
 
@@ -45,17 +42,6 @@ data class RegisterRequest(
 
 @Serializable
 data class RegisterResponse(
-    val token: String,
-    val errorMessage: String
-)
-
-@Serializable
-data class TokenTestRequest(
-    val message: String
-)
-
-@Serializable
-data class TokenTestResponse(
     val token: String,
     val errorMessage: String
 )
