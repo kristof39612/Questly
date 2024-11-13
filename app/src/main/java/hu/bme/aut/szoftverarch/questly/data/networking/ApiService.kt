@@ -5,7 +5,6 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import okhttp3.Interceptor
 import android.content.SharedPreferences
-import androidx.compose.foundation.interaction.DragInteraction
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 import retrofit2.http.GET

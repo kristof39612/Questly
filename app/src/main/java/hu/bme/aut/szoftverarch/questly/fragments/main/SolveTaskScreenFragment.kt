@@ -34,7 +34,6 @@ import android.Manifest
 import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
