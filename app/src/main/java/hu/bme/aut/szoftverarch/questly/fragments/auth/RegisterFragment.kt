@@ -78,6 +78,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF87CEEB)),
                 title = { Text(stringResource(R.string.register)) },
                 navigationIcon = {
                     IconButton(onClick = { onBackPressed() }) {
@@ -88,9 +89,10 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
         }
     ) { paddingValues ->
         Surface(
+            color = Color(0xFF87CEEB),
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(Color.LightGray)
                 .padding(paddingValues),
         ) {
 

@@ -57,6 +57,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
         //Main Content
     setContent {
         LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
