@@ -4,18 +4,23 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,12 +29,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
+import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
+import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.fragments.animation.LockScreenOrientation
 import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
@@ -69,9 +78,34 @@ fun MainScreen(drawerState: DrawerState) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val activity = context as MainActivity
-    //Database test
-    //val taskPointDatabase = TaskPointDatabase.getInstance(context)
-    //val taskPointDao = taskPointDatabase.taskPointDao()
+    val taskPointDatabase = TaskPointDatabase.getInstance(context)
+    val taskPointDao = taskPointDatabase.taskPointDao()
+    val toplistDatabase = ToplistDatabase.getInstance(context)
+    val toplistDao = toplistDatabase.toplistDao()
+    val apiService = RetrofitInstance.getAuthorizedApi(context)
+    var showProgress by remember { mutableStateOf(false) }
+
+    if (showProgress) {
+        Dialog(onDismissRequest = { }) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(150.dp)
+                    .background(
+                        color = Color.White,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Waiting...", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -149,7 +183,32 @@ fun MainScreen(drawerState: DrawerState) {
                             }
                             //Spacer(modifier = Modifier.weight(0.1f))
                             Column(modifier = Modifier.weight(0.13f)) {
-                                IconButton(onClick = {      //TODO: Refresh operations
+                                IconButton(onClick = {
+                                    showProgress = true
+                                    scope.launch {
+                                        try {
+                                            val response = apiService.getTaskPoints()
+                                            if (response.isSuccessful) {
+                                                for (taskPoint in response.body()!!) {
+                                                    taskPointDao.insertAll(taskPoint)
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        }
+                                        try {
+                                            val response = apiService.getToplist()
+                                            if (response.isSuccessful) {
+                                                for (entry in response.body()!!){
+                                                    toplistDao.insertAll(entry)
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        } finally {
+                                            showProgress = false
+                                        }
+                                    }
                                 }){
                                     Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                                 }

@@ -6,6 +6,7 @@ import retrofit2.http.POST
 import okhttp3.Interceptor
 import android.content.SharedPreferences
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
+import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 import retrofit2.http.GET
 import retrofit2.http.Path
 
@@ -21,6 +22,14 @@ interface ApiService {
 
     @POST("/taskpoint")
     suspend fun createTaskPoint(@Body taskPoint: TaskPoint): retrofit2.Response<TaskPoint>
+
+    @GET("/taskpoint")
+    suspend fun getTaskPoints(): retrofit2.Response<List<TaskPoint>>
+
+    @GET("/leaderboard")
+    suspend fun getToplist(): retrofit2.Response<List<ToplistEntry>>
+
+
 }
 
 @Serializable

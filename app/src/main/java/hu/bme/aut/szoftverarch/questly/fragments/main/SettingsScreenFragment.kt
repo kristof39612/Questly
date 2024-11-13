@@ -64,11 +64,11 @@ fun SettingsScreen() {
     )
 
     val toplistEntries = listOf(
-        ToplistEntry(userId = "Alice", earnedPoints = 100),
-        ToplistEntry(userId = "Bob", earnedPoints = 200),
-        ToplistEntry(userId = "Charlie", earnedPoints = 300),
-        ToplistEntry(userId = "Daniel", earnedPoints = 400),
-        ToplistEntry(userId = "Emma", earnedPoints = 500),
+        ToplistEntry(username = "Alice", points = 100),
+        ToplistEntry(username = "Bob", points = 200),
+        ToplistEntry(username = "Charlie", points = 300),
+        ToplistEntry(username = "Daniel", points = 400),
+        ToplistEntry(username = "Emma", points = 500),
     )
 
     val taskPointDatabase = TaskPointDatabase.getInstance(context)
@@ -149,31 +149,31 @@ fun SettingsScreen() {
         Spacer(modifier = Modifier.padding(8.dp))
         Button(onClick = {
             showProgress = true
-            scope.launch {
-                try {
-
-                    val tpt = TaskPoint(title = "XD", id = 2, location = hutyra, task = sampleTask, status = StatusEnum.PENDING, authorUserId = "sampleUser", rating = 0.0f)
-                    val response = apiService.createTaskPoint(tpt)
-                    if (response.isSuccessful) {
-                        showProgress = false
+            for (taskPoint in taskPoints) {
+                scope.launch {
+                    try {
+                        val response = apiService.createTaskPoint(taskPoint)
+                        if (response.isSuccessful) {
+                            showProgress = false
+                            Toast.makeText(
+                                context,
+                                response.body()?.title ?: "No message",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } catch (e: Exception) {
                         Toast.makeText(
                             context,
-                            response.body()?.title ?: "No message",
+                            "Error: ${e.message}",
                             Toast.LENGTH_SHORT
                         ).show()
+                    } finally {
+                        showProgress = false
                     }
-                } catch (e: Exception) {
-                    Toast.makeText(
-                        context,
-                        "Error: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } finally {
-                    showProgress = false
                 }
             }
         }) {
-            Text("Make a test API call")
+            Text("Upload task points")
         }
         Text("User Token: ${context.getSharedPreferences("UserData", Context.MODE_PRIVATE).getString("userToken", "No token")}")
     }

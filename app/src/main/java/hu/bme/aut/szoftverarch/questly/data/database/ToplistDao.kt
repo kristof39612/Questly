@@ -9,7 +9,7 @@ import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 @Dao
 interface ToplistDao {
 
-    @Query("SELECT * FROM toplist ORDER BY earnedPoints DESC")
+    @Query("SELECT * FROM toplist ORDER BY points DESC")
     suspend fun queryAll(): List<ToplistEntry>
 
     @Insert
