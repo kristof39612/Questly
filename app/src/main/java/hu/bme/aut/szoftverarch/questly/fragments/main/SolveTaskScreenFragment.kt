@@ -34,12 +34,17 @@ import android.Manifest
 import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import hu.bme.aut.szoftverarch.questly.R
+import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.data.networking.StartStopTaskRequest
 import java.io.File
 import java.io.FileOutputStream
+import hu.bme.aut.szoftverarch.questly.graphics.StarIcon
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -55,6 +60,8 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
     val camPermissionState =  rememberPermissionState(Manifest.permission.CAMERA)
     var imageFilePath by rememberSaveable { mutableStateOf<String?>(null) }
     val imageBitmap = imageFilePath?.let { BitmapFactory.decodeFile(it) }
+    var rating by remember { mutableIntStateOf(0) }
+    val apiService = RetrofitInstance.getAuthorizedApi(context)
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
         if (bitmap != null) {
@@ -78,8 +85,7 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
 
     LaunchedEffect(camPermissionState) {
         if (!camPermissionState.status.isGranted && camPermissionState.status.shouldShowRationale) {
-            Toast.makeText(context, "Please grant Camera permission", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(context, "Please grant Camera permission", Toast.LENGTH_SHORT).show()
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
@@ -97,7 +103,21 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
 
     ConfirmExitDialog(
         showDialog = showDialog,
-        onConfirm = { navController.popBackStack() },
+        onConfirm = {
+            scope.launch {
+                val cancelRequest = StartStopTaskRequest(taskId.toLong())
+                try{
+                    val response = apiService.cancelTask(cancelRequest)
+                    if(response.isSuccessful){
+                        navController.popBackStack()
+                    } else {
+                        Toast.makeText(context, R.string.taskCancelFailed, Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception){
+                    Toast.makeText(context, R.string.taskCancelFailed, Toast.LENGTH_SHORT).show()
+                }
+            }
+                    },
         onDismiss = { showDialog.value = false }
     )
 
@@ -152,9 +172,9 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                             text = task.question,
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         HorizontalDivider(thickness = 1.dp, color = Color.Gray)
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Column {
                             task.choices.forEachIndexed { index, choice ->
                                 Row(
@@ -185,7 +205,9 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                     }
                 }
             }
+
             HorizontalDivider(thickness = 1.dp, color = Color.Gray)
+
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -193,12 +215,12 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
+                        .height(180.dp)
                         .background(Color.Gray)
                         .clickable {
                             if(camPermissionState.status.isGranted){
                                 launcher.launch(null)
-                            //Toast.makeText(context, "Camera permission granted", Toast.LENGTH_SHORT).show()
+                                //Toast.makeText(context, "Camera permission granted", Toast.LENGTH_SHORT).show()
                             } else {
                                 requestPermissionLauncher.launch(Manifest.permission.CAMERA)
                             }
@@ -212,11 +234,34 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
-
                         Text("Tap to take a picture", color = Color.White)
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // Add a row for the 5 stars rating section
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                        .height(30.dp)
+                ) {
+                    repeat(5) { index ->
+                        Box(modifier = Modifier
+                            .clickable {
+                                rating = index + 1
+                            }
+                        ) {
+                            StarIcon(
+                                size = 40.dp,
+                                color = Color(0xFFFF4D01),
+                                fillRatio = if (index < rating) 1f else 0f
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(1.dp))
                 Button(
                     onClick = { /* Handle submit action */ },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
@@ -227,7 +272,7 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                 Text(
                     text = "Task ID: $taskId",
                     modifier = Modifier
-                        .padding(top = 8.dp),
+                        .padding(top = 1.dp),
                     style = MaterialTheme.typography.bodySmall
                 )
             }

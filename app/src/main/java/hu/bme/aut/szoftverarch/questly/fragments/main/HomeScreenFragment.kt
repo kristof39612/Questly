@@ -50,6 +50,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.Marker
+import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.data.networking.StartStopTaskRequest
+import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.StarRating
 
 
@@ -66,7 +69,21 @@ fun HomeScreenFragment(navController: NavController) {
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var userLocation by remember { mutableStateOf<Location?>(null) }
     var isWithinRange by remember { mutableStateOf(false) }
+    val gpsPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+    val bpcenter = LatLng(47.4977309, 19.0506962)
+    val apiService = RetrofitInstance.getAuthorizedApi(context)
+    var showProgress by remember { mutableStateOf(false) }
 
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(bpcenter, 15f)
+    }
+    val uiSettings by remember {
+        mutableStateOf(MapUiSettings(zoomControlsEnabled = true, myLocationButtonEnabled = true))
+    }
+
+    val mapProperties = remember {
+        MapProperties(isMyLocationEnabled = true)
+    }
     LaunchedEffect(Unit) {
         scope.launch {
             val points = taskPointDao.queryAll()
@@ -74,8 +91,9 @@ fun HomeScreenFragment(navController: NavController) {
         }
     }
 
-    val gpsPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
-    val bpcenter = LatLng(47.4977309, 19.0506962)
+    if(showProgress){
+        LoadingDialog()
+    }
 
     // Initial permission request
     val requestPermissionLauncher = rememberLauncherForActivityResult(
@@ -93,17 +111,6 @@ fun HomeScreenFragment(navController: NavController) {
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-    }
-
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(bpcenter, 15f)
-    }
-    val uiSettings by remember {
-        mutableStateOf(MapUiSettings(zoomControlsEnabled = true, myLocationButtonEnabled = true))
-    }
-
-    val mapProperties = remember {
-        MapProperties(isMyLocationEnabled = true)
     }
 
     if (gpsPermissionState.status.isGranted) {
@@ -219,12 +226,24 @@ fun HomeScreenFragment(navController: NavController) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
-                        //Toast.makeText(context, "OK!", Toast.LENGTH_SHORT).show()
+                        showProgress = true
                         scope.launch {
                             sheetState.hide()
                             selectedTaskPoint.value = null
+                            val req = StartStopTaskRequest(taskPoint.id)
+                            try{
+                                val response = apiService.startTask(req)
+                                if(response.isSuccessful){
+                                    navController.navigate("solveTask/${taskPoint.id}")
+                                } else {
+                                    Toast.makeText(context, R.string.taskStartFailed, Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, R.string.taskStartFailed, Toast.LENGTH_SHORT).show()
+                            } finally {
+                                showProgress = false
+                            }
                         }
-                        navController.navigate("solveTask/${taskPoint.id}")
                     },
                     enabled = isWithinRange
                 ) {

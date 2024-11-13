@@ -38,6 +38,7 @@ import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
+import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
 
 @Composable
@@ -79,25 +80,7 @@ fun SettingsScreen() {
     Column(Modifier.padding(16.dp)) {
 
         if (showProgress) {
-            Dialog(onDismissRequest = { }) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(150.dp)
-                        .background(
-                            color = Color.White,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        CircularProgressIndicator()
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Waiting...", style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
+            LoadingDialog()
         }
 
         Text("Debug options")

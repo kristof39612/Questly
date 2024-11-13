@@ -66,6 +66,7 @@ import hu.bme.aut.szoftverarch.questly.MainActivity
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.networking.LoginRequest
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
@@ -162,25 +163,7 @@ fun LoginScreen() {
         ) {
 
             if (showProgress) {
-                Dialog(onDismissRequest = { }) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(150.dp)
-                            .background(
-                                color = Color.White,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            CircularProgressIndicator()
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(stringResource(R.string.loggingin), style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
+                LoadingDialog(stringResource(R.string.loggingin))
             }
             val infiniteTransition = rememberInfiniteTransition(label = "")
             Text(

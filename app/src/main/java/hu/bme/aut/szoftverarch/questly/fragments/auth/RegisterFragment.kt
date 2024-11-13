@@ -27,6 +27,7 @@ import androidx.fragment.app.Fragment
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.networking.RegisterRequest
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
 
 class RegisterFragment : Fragment() {
@@ -97,30 +98,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
         ) {
 
             if (showProgress) {
-                Dialog(onDismissRequest = { }) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(150.dp)
-                            .background(
-                                color = Color.White,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            CircularProgressIndicator()
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                stringResource(R.string.registering),
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier =
-                                    Modifier.align(Alignment.CenterHorizontally)
-                            )
-                        }
-                    }
-                }
+               LoadingDialog(stringResource(R.string.registering))
             }
 
             Column(

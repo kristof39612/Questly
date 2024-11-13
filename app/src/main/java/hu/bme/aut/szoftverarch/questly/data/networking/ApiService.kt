@@ -5,9 +5,11 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import okhttp3.Interceptor
 import android.content.SharedPreferences
+import androidx.compose.foundation.interaction.DragInteraction
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.Path
 
 interface ApiService {
@@ -31,6 +33,12 @@ interface ApiService {
 
     @GET("/user/points")
     suspend fun getUserPoints(): retrofit2.Response<ToplistUserPointsResponse>
+
+    @PATCH("/user/startTask")
+    suspend fun startTask(@Body request: StartStopTaskRequest): retrofit2.Response<Unit>
+
+    @PATCH("/user/cancelTask")
+    suspend fun cancelTask(@Body request: StartStopTaskRequest): retrofit2.Response<Unit>
 }
 
 @Serializable
@@ -60,6 +68,11 @@ data class RegisterResponse(
 data class ToplistUserPointsResponse(
     val username: String,
     val points: Int,
+)
+
+@Serializable
+data class StartStopTaskRequest(
+    val taskPointId: Long,
 )
 
 class AuthInterceptor(private val sharedPreferences: SharedPreferences) : Interceptor {

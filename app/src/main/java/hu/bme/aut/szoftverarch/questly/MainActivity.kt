@@ -52,6 +52,7 @@ import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SolveTaskScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.ToplistFragment
+import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -96,25 +97,7 @@ fun MainScreen(drawerState: DrawerState) {
     var userName by remember { mutableStateOf("Anonymus") }
 
     if (showProgress) {
-        Dialog(onDismissRequest = { }) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(150.dp)
-                    .background(
-                        color = Color.White,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("Waiting...", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
+        LoadingDialog()
     }
 
     fun refreshFromBackend() {
