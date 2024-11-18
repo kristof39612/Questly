@@ -163,7 +163,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                         if(username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
                             if (password == confirmPassword && emailTextFieldColor == Color.Transparent) {
                                 showProgress = true
-                                val rr = RegisterRequest(email, password)
+                                val rr = RegisterRequest(email = email,password = password,username=username)//, username = username)
                                 scope.launch {
                                     try {
                                         val serverResponse = apiService.register(rr)

@@ -4,6 +4,6 @@ class TextPromptTask(
     var question: String,
     var answer: String
 ) : Task() {
-    override var pointForCompletion: Int = 25
+    override var pointsForCompletion: Int = 25
 
 }

@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import hu.bme.aut.szoftverarch.questly.ConfirmExitDialog
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.tasks.*
@@ -39,11 +38,15 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import hu.bme.aut.szoftverarch.questly.R
-import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
-import hu.bme.aut.szoftverarch.questly.data.networking.StartStopTaskRequest
+import hu.bme.aut.szoftverarch.questly.data.networking.*
+import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import java.io.File
 import java.io.FileOutputStream
 import hu.bme.aut.szoftverarch.questly.graphics.StarIcon
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.util.Locale
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -61,6 +64,7 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
     val imageBitmap = imageFilePath?.let { BitmapFactory.decodeFile(it) }
     var rating by remember { mutableIntStateOf(0) }
     val apiService = RetrofitInstance.getAuthorizedApi(context)
+    var showProgress by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
         if (bitmap != null) {
@@ -94,6 +98,10 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
         scope.launch {
             taskPoint.value = taskPointDao.queryById(taskId)
         }
+    }
+
+    if(showProgress){
+        LoadingDialog("Submitting task...")
     }
 
     BackHandler {
@@ -198,6 +206,7 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                     }
                     is GoToPointTask -> {
                         Text("Destination: ${task.where.latitude}, ${task.where.longitude}")
+                        Spacer(modifier = Modifier.height(250.dp))
                     }
                     else -> {
                         Text("Unknown task type")
@@ -262,7 +271,54 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
 
                 Spacer(modifier = Modifier.height(1.dp))
                 Button(
-                    onClick = { /* Handle submit action */ },
+                    onClick = {
+                        showProgress = true
+                        if (checkIfCorrect(taskPoint.value!!, answer, selectedChoice)) {
+                            if (imageFilePath != null) {
+                                scope.launch {
+                                    try {
+                                        val file = File(imageFilePath!!)
+                                        val requestBody =
+                                            file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                                        val part = MultipartBody.Part.createFormData(
+                                            "photo",
+                                            file.name,
+                                            requestBody
+                                        )
+                                        //val completeRequest = CompleteTaskRequest(rating.toLong())
+                                        val response =
+                                            apiService.completeTask(rating.toLong(), part)
+                                        if (response.isSuccessful) {
+                                            Toast.makeText(
+                                                context,
+                                                "Task completed successfully!",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            navController.popBackStack()
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Task completion failed!",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            context,
+                                            "Task completion failed!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(context, "Please take a picture", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        } else {
+                            Toast.makeText(context, "Incorrect answer!", Toast.LENGTH_SHORT).show()
+                        }
+                        showProgress = false
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -276,5 +332,14 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                 )
             }
         }
+    }
+}
+
+fun checkIfCorrect(taskPoint: TaskPoint, answer: String, selectedChoice: Int): Boolean {
+    return when (val task = taskPoint.task) {
+        is TextPromptTask -> task.answer.lowercase(Locale.ROOT) == answer.lowercase(Locale.ROOT)
+        is SingleChoiceTask -> task.correctAnswer == selectedChoice
+        is GoToPointTask -> true
+        else -> false
     }
 }

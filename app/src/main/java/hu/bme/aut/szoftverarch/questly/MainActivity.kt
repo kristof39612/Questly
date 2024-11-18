@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -93,6 +92,7 @@ fun MainScreen(drawerState: DrawerState) {
     var showProgress by remember { mutableStateOf(false) }
     var userPoints by remember { mutableIntStateOf(0) }
     var userName by remember { mutableStateOf("Anonymus") }
+    val sharedPreferences = context.getSharedPreferences("UserData",Context.MODE_PRIVATE)
 
     if (showProgress) {
         LoadingDialog()
@@ -132,10 +132,23 @@ fun MainScreen(drawerState: DrawerState) {
                }
            } catch (e: Exception) {
                Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
-           } finally {
+           }
+           try{
+               val response = apiService.getCurrentTask()
+               if(response.isSuccessful){
+                   val task = response.body()?.taskPointId
+                   if(task != null){
+                       val editor = sharedPreferences.edit()
+                       editor.putString("currentTask", task.toString())
+                       editor.apply()
+                   }
+               } else {
+                   sharedPreferences.edit().remove("currentTask").apply()
+               }
+           }
+           finally {
                showProgress = false
            }
-
        }
    }
 
@@ -157,12 +170,12 @@ fun MainScreen(drawerState: DrawerState) {
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    val username = context.getSharedPreferences("UserData", 0).getString("userEmail", "placeholder")
+                    //val username = context.getSharedPreferences("UserData", 0).getString("userEmail", "placeholder")
                     Text(buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                             append(stringResource(R.string.usernameLabel)+ " ")
                         }
-                        append(username)
+                        append(userName)
                     }, style = MaterialTheme.typography.bodyLarge)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(buildAnnotatedString {
@@ -346,33 +359,6 @@ fun BottomNavigationBar(navController: NavController) {
                     }
                     launchSingleTop = true
                     restoreState = true
-                }
-            }
-        )
-    }
-}
-
-@Composable
-fun ConfirmExitDialog(showDialog: MutableState<Boolean>, onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Confirm Exit") },
-            text = { Text("Are you sure you want to leave this task?") },
-            confirmButton = {
-                Button(onClick = {
-                    showDialog.value = false
-                    onConfirm()
-                }) {
-                    Text("Yes")
-                }
-            },
-            dismissButton = {
-                Button(onClick = {
-                    showDialog.value = false
-                    onDismiss()
-                }) {
-                    Text("No")
                 }
             }
         )
