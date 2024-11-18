@@ -7,5 +7,5 @@ class GoToPointTask(
 ) : Task() {
 
     // @Expose(serialize = false, deserialize = false)
-    override var pointForCompletion: Int = 50
+    override var pointsForCompletion: Int = 50
 }

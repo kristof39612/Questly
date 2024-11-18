@@ -7,6 +7,6 @@ class SingleChoiceTask(
     var correctAnswer: Int
 ) : Task() {
 
-    override var pointForCompletion: Int = 10
+    override var pointsForCompletion: Int = 10
 
 }

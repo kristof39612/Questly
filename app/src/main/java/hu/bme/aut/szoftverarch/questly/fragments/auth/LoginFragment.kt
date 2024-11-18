@@ -261,23 +261,6 @@ fun LoginScreen() {
 
             Button(
                 onClick = {
-                    context.startActivity(Intent(context, MainActivity::class.java))
-                    activity?.finish()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0x80FF8C00) // Semi-transparent orange
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(50.dp),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text("Login", color = Color.White)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = {
                     if (email.isNotEmpty() && password.isNotEmpty()) {
                         showProgress = true
                         val lr = LoginRequest(email, password)

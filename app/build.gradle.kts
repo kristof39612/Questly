@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
     implementation (libs.retrofit2.retrofit)
+    implementation(libs.okhttp)
     implementation (libs.converter.gson)
     //implementation(libs.androidx.ui.graphics)
     //implementation(libs.androidx.foundation)

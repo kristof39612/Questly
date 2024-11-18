@@ -39,7 +39,8 @@ fun SettingsScreen() {
     val selectionpoint = LatLong(47.4977309 - 0.00045, 19.0506962) // ~50m south
     val sampleTask = TextPromptTask(question="What is the capital of Hungary?", answer="Budapest")
     val textTask = TextPromptTask(question = "What is red and blue?", answer = "Purple")
-    val walkTask = GoToPointTask(where = bpcenter)
+    val keletipu = LatLong(47.4970392,19.0847479)
+    val walkTask = GoToPointTask(where = keletipu)
     val selectionTask = SingleChoiceTask(question = "What is the capital of Hungary?", choices = listOf("Budapest", "Vienna", "Berlin", "Prague"), correctAnswer = 0)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -48,10 +49,10 @@ fun SettingsScreen() {
     var showProgress by remember { mutableStateOf(false) }
 
     val taskPoints = listOf(
-        TaskPoint(id = 1, location = selectionpoint, task = sampleTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 4.5f, title = "XD"),
-        TaskPoint(id = 2, location = textpoint, task = textTask, status = StatusEnum.REJECTED, authorUserId = "sampleUser", rating = 2.5f,title = "XD"),
-        TaskPoint(id = 3, location = walkpoint, task = walkTask, status = StatusEnum.PENDING, authorUserId = "sampleUser", rating = 3.55f, title = "XD"),
-        TaskPoint(id = 4, location = hutyra, task = selectionTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 0.1f, title = "XD"),
+        TaskPoint(id = 1, location = selectionpoint, task = sampleTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 4.5f, title = "Alpha"),
+        TaskPoint(id = 2, location = textpoint, task = textTask, status = StatusEnum.REJECTED, authorUserId = "sampleUser", rating = 2.5f,title = "Bravo"),
+        TaskPoint(id = 3, location = hutyra, task = walkTask, status = StatusEnum.PENDING, authorUserId = "sampleUser", rating = 3.55f, title = "Charlie"),
+        TaskPoint(id = 4, location = walkpoint, task = selectionTask, status = StatusEnum.APPROVED, authorUserId = "sampleUser", rating = 0.1f, title = "Delta"),
     )
 
     val toplistEntries = listOf(
