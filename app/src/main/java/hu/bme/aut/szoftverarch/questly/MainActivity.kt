@@ -53,7 +53,6 @@ import hu.bme.aut.szoftverarch.questly.fragments.main.SolveTaskScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.ToplistFragment
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
-import kotlin.math.log
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
