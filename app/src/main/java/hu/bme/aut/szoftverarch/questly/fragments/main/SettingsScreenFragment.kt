@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen() {
-    val bpcenter = LatLong(47.4977309, 19.0506962)
+    //val bpcenter = LatLong(47.4977309, 19.0506962)
     val textpoint = LatLong(47.4977309 + 0.00045, 19.0506962) // ~50m north
     val walkpoint = LatLong(47.4977309, 19.0506962 + 0.00065) // ~50m east
     val selectionpoint = LatLong(47.4977309 - 0.00045, 19.0506962) // ~50m south

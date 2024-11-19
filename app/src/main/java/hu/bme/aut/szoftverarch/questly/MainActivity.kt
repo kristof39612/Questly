@@ -40,6 +40,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import hu.bme.aut.szoftverarch.questly.data.database.LogEntryDatabase
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
@@ -88,6 +89,8 @@ fun MainScreen(drawerState: DrawerState) {
     val taskPointDao = taskPointDatabase.taskPointDao()
     val toplistDatabase = ToplistDatabase.getInstance(context)
     val toplistDao = toplistDatabase.toplistDao()
+    val logentryDatabase = LogEntryDatabase.getInstance(context)
+    val logentryDao = logentryDatabase.logEntryDao()
     val apiService = RetrofitInstance.getAuthorizedApi(context)
     var showProgress by remember { mutableStateOf(false) }
     var userPoints by remember { mutableIntStateOf(0) }
@@ -145,6 +148,22 @@ fun MainScreen(drawerState: DrawerState) {
                } else {
                    sharedPreferences.edit().remove("currentTask").apply()
                }
+           } catch (e: Exception) {
+               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+           }
+           try{
+                val response = apiService.getLogEntries()
+                if(response.isSuccessful) {
+                    val logEntries = response.body()
+                    logentryDao.deleteAll()
+                    for (entry in logEntries!!) {
+                        logentryDao.insertAll(entry)
+                    }
+                } else {
+                     sharedPreferences.edit().remove("logEntries").apply()
+                }
+           } catch (e: Exception) {
+               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
            }
            finally {
                showProgress = false
