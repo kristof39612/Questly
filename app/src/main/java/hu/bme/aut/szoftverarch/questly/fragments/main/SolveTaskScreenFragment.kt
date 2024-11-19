@@ -39,6 +39,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.networking.*
+import hu.bme.aut.szoftverarch.questly.graphics.ConfirmExitDialog
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import java.io.File
 import java.io.FileOutputStream
@@ -308,6 +309,8 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                                             "Task completion failed!",
                                             Toast.LENGTH_SHORT
                                         ).show()
+                                    } finally{
+                                        showProgress = false
                                     }
                                 }
                             } else {
@@ -317,7 +320,6 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                         } else {
                             Toast.makeText(context, "Incorrect answer!", Toast.LENGTH_SHORT).show()
                         }
-                        showProgress = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
                     modifier = Modifier.fillMaxWidth()
