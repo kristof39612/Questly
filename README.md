@@ -17,7 +17,7 @@ Questly is an Android application developed by us for VIAUMA21.
 
 ## Backend test
 ## Backend test
-Írd felül a [RetrofitInstance.kt](app\src\main\java\hu\bme\aut\szoftverarch\questly\data\networking\RetrofitInstance.kt) fájlban a címet:
+Írd felül a [RetrofitInstance.kt](app/src/main/java/hu/bme/aut/szoftverarch/questly/data/networking/RetrofitInstance.kt) fájlban a címet:
 ```kotlin
 const val BASE_URL = "http://<HOST_PC>:8080"
 ```
