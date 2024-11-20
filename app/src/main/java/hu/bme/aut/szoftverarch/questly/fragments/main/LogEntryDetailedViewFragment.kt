@@ -68,7 +68,6 @@ fun LogEntryDetailedViewFragment(
     val logEntryDao = logEntryDatabase.logEntryDao()
     val apiService = RetrofitInstance.getAuthorizedApi(context)
     var icandraw by remember { mutableStateOf(false)}
-    val photo = remember { mutableStateOf<Bitmap?>(null) }
     val taskpoint = remember { mutableStateOf<TaskPoint?>(null) }
 
     if(showProgress){
