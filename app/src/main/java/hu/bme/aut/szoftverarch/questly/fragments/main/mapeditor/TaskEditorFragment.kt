@@ -1,19 +1,25 @@
 package hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,10 +28,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.navigation.NavController
@@ -33,10 +39,13 @@ import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
+import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditSingleChoiceTaskComposable
+import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditTextPromptTaskComposable
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.getBitmapFromVectorDrawable
 import hu.bme.aut.szoftverarch.questly.graphics.taskTypeIcon
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskEditorFragment(
     navController: NavController,
@@ -81,63 +90,93 @@ fun TaskEditorFragment(
         Text("TaskLoadedFromServer")
     } else if (taskPointLocation.value.latitude != 0.0 && taskPointLocation.value.longitude != 0.0) {
         //Text("NewTaskFromLocation")
-        Surface(
+        /*Surface(
             modifier = Modifier
                 .padding(8.dp)
-        ){
-            OutlinedTextField(
-                value = selectedTaskType,
-                onValueChange = { selectedTaskType = it },
-                enabled = true,
-                readOnly = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    //.padding(8.dp)
-                    .onGloballyPositioned { coordinates ->
-                        // This value is used to assign to
-                        // the DropDown the same width
-                        mTextFieldSize = coordinates.size.toSize()
-                    },
-                label = { Text("Task type") },
-                trailingIcon = {
-                    Icon(dropdownIcon, "contentDescription",
-                        Modifier.clickable { dropdownExpanded = !dropdownExpanded })
-                },
-                leadingIcon = {
-                    Image(
-                        getBitmapFromVectorDrawable(
-                            context,
-                            taskTypeIcon(selectedTaskType),
-                        ).asImageBitmap(),
-                        contentDescription = null
-                    )
-                },
-            )
-            DropdownMenu(
+        ) {*/
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)) {
+            ExposedDropdownMenuBox(
                 expanded = dropdownExpanded,
-                onDismissRequest = { dropdownExpanded = false },
-                modifier = Modifier
-                    .width(with(LocalDensity.current) { mTextFieldSize.width.toDp() })
-                //.offset(x = 16.dp)
+                onExpandedChange = { dropdownExpanded = !dropdownExpanded }
             ) {
-                taskTypes.forEach { taskType ->
-                    DropdownMenuItem(
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        text = { Text(taskType) },
+                TextField(
+                    value = selectedTaskType,
+                    onValueChange = { },
+                    readOnly = true,
+                    label = { Text("Task type") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded)
+                    },
+                    leadingIcon = {
+                        Image(
+                            bitmap = getBitmapFromVectorDrawable(
+                                context,
+                                taskTypeIcon(selectedTaskType)
+                            ).asImageBitmap(),
+                            contentDescription = "Task type icon",
+                            modifier = Modifier
+                                .onGloballyPositioned { coordinates ->
+                                    mTextFieldSize = coordinates.size.toSize()
+                                }
+                                .padding(8.dp)
+                        )
+                    },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                    modifier = Modifier
+                        .menuAnchor(MenuAnchorType.PrimaryEditable, true)
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = dropdownExpanded,
+                    onDismissRequest = { dropdownExpanded = false },
+                ) {
+                    taskTypes.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                selectedTaskType = option
+                                dropdownExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.90f)) {
+                when (selectedTaskType) {
+                    "Text Prompt Task" -> EditTextPromptTaskComposable(latLng = taskPointLocation.value.toGoogleLatLong())
+                    "Single Choice Task" -> EditSingleChoiceTaskComposable(latLng = taskPointLocation.value.toGoogleLatLong())
+                }
+            }
+            if (selectedTaskType != "Select a task type from the list...") {
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
                         onClick = {
-                            selectedTaskType = taskType
-                            dropdownExpanded = false
-                        },
-                        leadingIcon = {
-                            Image(
-                                getBitmapFromVectorDrawable(
-                                    context,
-                                    taskTypeIcon(taskType),
-                                ).asImageBitmap(),
-                                contentDescription = null
-                            )
+                            /* Handle submit action */
                         }
-                    )
+                    ) {
+                        Text("Submit", color = Color.White)
+                    }
+                    Button(
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                        onClick = {
+                            navController.popBackStack()
+                        }
+                    ) {
+                        Text(" Abort ")
+                    }
                 }
             }
 
