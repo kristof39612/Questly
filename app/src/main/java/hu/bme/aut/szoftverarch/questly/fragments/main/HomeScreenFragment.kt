@@ -63,6 +63,7 @@ import hu.bme.aut.szoftverarch.questly.data.networking.StartStopTaskRequest
 import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.StarRating
+import hu.bme.aut.szoftverarch.questly.graphics.TaskCompletionDialog
 
 
 @SuppressLint("UnrememberedMutableState")

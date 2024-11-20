@@ -6,6 +6,7 @@ import retrofit2.http.POST
 import okhttp3.Interceptor
 import android.content.SharedPreferences
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
+import hu.bme.aut.szoftverarch.questly.data.entries.LogEntry
 import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 import okhttp3.MultipartBody
 import retrofit2.http.GET
@@ -51,6 +52,12 @@ interface ApiService {
         @Part("givenRating") givenRating: Long,
         @Part photo: MultipartBody.Part
     ): retrofit2.Response<CompleteTaskResponse>
+
+    @GET("/user/getLogEntries")
+    suspend fun getLogEntries(): retrofit2.Response<List<LogEntry>>
+
+    @GET("/user/photo/{id}")
+    suspend fun getPhoto(@Path("id") id: String): retrofit2.Response<okhttp3.ResponseBody>
 }
 
 @Serializable

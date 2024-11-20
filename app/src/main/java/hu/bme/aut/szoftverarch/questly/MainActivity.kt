@@ -40,11 +40,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import hu.bme.aut.szoftverarch.questly.data.database.LogEntryDatabase
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.graphics.LockScreenOrientation
 import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.LogEntryDetailedViewFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.LogEntryListFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SolveTaskScreen
@@ -88,11 +91,23 @@ fun MainScreen(drawerState: DrawerState) {
     val taskPointDao = taskPointDatabase.taskPointDao()
     val toplistDatabase = ToplistDatabase.getInstance(context)
     val toplistDao = toplistDatabase.toplistDao()
+    val logentryDatabase = LogEntryDatabase.getInstance(context)
+    val logentryDao = logentryDatabase.logEntryDao()
     val apiService = RetrofitInstance.getAuthorizedApi(context)
     var showProgress by remember { mutableStateOf(false) }
     var userPoints by remember { mutableIntStateOf(0) }
     var userName by remember { mutableStateOf("Anonymus") }
     val sharedPreferences = context.getSharedPreferences("UserData",Context.MODE_PRIVATE)
+
+    fun logmeout(){
+        val sp = context.getSharedPreferences("UserData", Context.MODE_PRIVATE)
+        val editor = sp.edit()
+        editor.clear()
+        editor.apply()
+        val intent = Intent(context, LoginActivity::class.java)
+        context.startActivity(intent)
+        activity.finish()
+    }
 
     if (showProgress) {
         LoadingDialog()
@@ -111,6 +126,7 @@ fun MainScreen(drawerState: DrawerState) {
                }
            } catch (e: Exception) {
                Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+               logmeout()
            }
            try {
                val response = apiService.getToplist()
@@ -122,6 +138,7 @@ fun MainScreen(drawerState: DrawerState) {
                }
            } catch (e: Exception) {
                Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+               logmeout()
            }
            try {
                val response = apiService.getUserPoints()
@@ -132,6 +149,7 @@ fun MainScreen(drawerState: DrawerState) {
                }
            } catch (e: Exception) {
                Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+               logmeout()
            }
            try{
                val response = apiService.getCurrentTask()
@@ -145,6 +163,22 @@ fun MainScreen(drawerState: DrawerState) {
                } else {
                    sharedPreferences.edit().remove("currentTask").apply()
                }
+           } catch (e: Exception) {
+               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+               logmeout()
+           }
+           try{
+                val response = apiService.getLogEntries()
+                logentryDao.deleteAll()
+                if(response.isSuccessful) {
+                    val logEntries = response.body()
+                    for (entry in logEntries!!) {
+                        logentryDao.insertAll(entry)
+                    }
+                }
+           } catch (e: Exception) {
+               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+               logmeout()
            }
            finally {
                showProgress = false
@@ -194,20 +228,23 @@ fun MainScreen(drawerState: DrawerState) {
                     ModernButton(
                         icon = painterResource(id = R.drawable.ic_menu_book),
                         text = stringResource(R.string.log),
-                        onClick = { /* Handle Log click */ }
+                        onClick = {
+                            navController.navigate("logentries"){
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                            scope.launch { drawerState.close() }
+                        }
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     ModernButton(
                         icon = painterResource(id = R.drawable.ic_logout),
                         text = stringResource(R.string.logout),
                         onClick = {
-                            val sp = context.getSharedPreferences("UserData", Context.MODE_PRIVATE)
-                            val editor = sp.edit()
-                            editor.clear()
-                            editor.apply()
-                            val intent = Intent(context, LoginActivity::class.java)
-                            context.startActivity(intent)
-                            activity.finish()
+                            logmeout()
                         },
                         buttonColor = Color.Red,
                         textColor = Color.White
@@ -264,6 +301,13 @@ fun MainScreen(drawerState: DrawerState) {
                     val taskPointId = backStackEntry.arguments?.getString("taskPointId")
                     taskPointId?.let {
                         SolveTaskScreen(navController = navController, taskId = it)
+                    }
+                }
+                composable("logentries") { LogEntryListFragment(navController) }
+                composable("logentry/{logEntryId}") { backStackEntry ->
+                    val logEntryId = backStackEntry.arguments?.getString("logEntryId")
+                    logEntryId?.let {
+                        LogEntryDetailedViewFragment(navController = navController, logEntryId = it)
                     }
                 }
             }

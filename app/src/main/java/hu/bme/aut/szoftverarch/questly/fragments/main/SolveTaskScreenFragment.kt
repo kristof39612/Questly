@@ -39,6 +39,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.networking.*
+import hu.bme.aut.szoftverarch.questly.graphics.ConfirmExitDialog
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import java.io.File
 import java.io.FileOutputStream
@@ -60,8 +61,8 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
     var answer by remember { mutableStateOf("") }
     var selectedChoice by remember { mutableIntStateOf(-1) }
     val camPermissionState =  rememberPermissionState(Manifest.permission.CAMERA)
-    var imageFilePath by rememberSaveable { mutableStateOf<String?>(null) }
-    val imageBitmap = imageFilePath?.let { BitmapFactory.decodeFile(it) }
+    val imageFilePath = rememberSaveable { mutableStateOf<String?>(null) }
+    val imageBitmap = imageFilePath.value?.let { BitmapFactory.decodeFile(it) }
     var rating by remember { mutableIntStateOf(0) }
     val apiService = RetrofitInstance.getAuthorizedApi(context)
     var showProgress by remember { mutableStateOf(false) }
@@ -74,7 +75,7 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
             outputStream.flush()
             outputStream.close()
-            imageFilePath = file.absolutePath
+            imageFilePath.value = file.absolutePath
         }
     }
 
@@ -95,9 +96,7 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
     }
 
     LaunchedEffect(Unit) {
-        scope.launch {
-            taskPoint.value = taskPointDao.queryById(taskId)
-        }
+        taskPoint.value = taskPointDao.queryById(taskId)
     }
 
     if(showProgress){
@@ -274,10 +273,10 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                     onClick = {
                         showProgress = true
                         if (checkIfCorrect(taskPoint.value!!, answer, selectedChoice)) {
-                            if (imageFilePath != null) {
+                            if (imageFilePath.value != null) {
                                 scope.launch {
                                     try {
-                                        val file = File(imageFilePath!!)
+                                        val file = File(imageFilePath.value!!)
                                         val requestBody =
                                             file.asRequestBody("image/jpeg".toMediaTypeOrNull())
                                         val part = MultipartBody.Part.createFormData(
@@ -308,6 +307,8 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                                             "Task completion failed!",
                                             Toast.LENGTH_SHORT
                                         ).show()
+                                    } finally{
+                                        showProgress = false
                                     }
                                 }
                             } else {
@@ -317,7 +318,6 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                         } else {
                             Toast.makeText(context, "Incorrect answer!", Toast.LENGTH_SHORT).show()
                         }
-                        showProgress = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
                     modifier = Modifier.fillMaxWidth()

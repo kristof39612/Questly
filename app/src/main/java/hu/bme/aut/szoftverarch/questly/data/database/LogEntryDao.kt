@@ -21,4 +21,7 @@ interface LogEntryDao {
     @Delete
     suspend fun delete(logEntry: LogEntry)
 
+    @Query("DELETE FROM logentry")
+    suspend fun deleteAll()
+
 }

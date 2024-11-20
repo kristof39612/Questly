@@ -9,8 +9,8 @@ class LogEntry {
     @PrimaryKey
     var id: Long = 0
     var visitedPointId: String = ""
-    // #TODO: Photo
     var visitDate: String = Date().toString()
     var userId: String = ""
+    var photoId: String = ""
     var givenRating: Int = 0
 }
