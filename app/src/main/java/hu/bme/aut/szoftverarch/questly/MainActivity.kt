@@ -46,6 +46,7 @@ import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.graphics.LockScreenOrientation
 import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.LogEntryDetailedViewFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.LogEntryListFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
@@ -302,7 +303,13 @@ fun MainScreen(drawerState: DrawerState) {
                         SolveTaskScreen(navController = navController, taskId = it)
                     }
                 }
-                composable("logentries") { LogEntryListFragment() }
+                composable("logentries") { LogEntryListFragment(navController) }
+                composable("logentry/{logEntryId}") { backStackEntry ->
+                    val logEntryId = backStackEntry.arguments?.getString("logEntryId")
+                    logEntryId?.let {
+                        LogEntryDetailedViewFragment(navController = navController, logEntryId = it)
+                    }
+                }
             }
         }
     }

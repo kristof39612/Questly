@@ -55,6 +55,9 @@ interface ApiService {
 
     @GET("/user/getLogEntries")
     suspend fun getLogEntries(): retrofit2.Response<List<LogEntry>>
+
+    @GET("/user/photo/{id}")
+    suspend fun getPhoto(@Path("id") id: String): retrofit2.Response<okhttp3.ResponseBody>
 }
 
 @Serializable

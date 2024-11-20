@@ -1,6 +1,5 @@
 package hu.bme.aut.szoftverarch.questly.fragments.main
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -29,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import hu.bme.aut.szoftverarch.questly.data.database.LogEntryDatabase
 import hu.bme.aut.szoftverarch.questly.data.entries.LogEntry
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +38,9 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun LogEntryListFragment() {
+fun LogEntryListFragment(
+    navController: NavController
+) {
 
     val context = LocalContext.current
     val logEntries = remember { mutableStateListOf<LogEntry>() }
@@ -60,7 +62,10 @@ fun LogEntryListFragment() {
         )
         LogEntryList(
             logEntries = logEntries,
-            onLogEntryClick = { Toast.makeText(context, "Clicked on ${it.visitedPointId}", Toast.LENGTH_SHORT).show() }
+            onLogEntryClick = {
+                navController.navigate("logEntry/${it.id}")
+                //Toast.makeText(context, "Clicked on ${it.visitedPointId}", Toast.LENGTH_SHORT).show()
+            }
         )
     }
 
