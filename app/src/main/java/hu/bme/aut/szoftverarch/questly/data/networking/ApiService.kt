@@ -22,6 +22,12 @@ interface ApiService {
     @POST("/auth/register")
     suspend fun register(@Body request: RegisterRequest) : retrofit2.Response<RegisterResponse>
 
+    @GET("/user/userID")
+    suspend fun getUserId(): retrofit2.Response<Long>
+
+    @GET("/user/role")
+    suspend fun getUserRole(): retrofit2.Response<Unit>
+
     @GET("/taskpoint/{id}")
     suspend fun getTaskPointById(@Path("id") id: String): retrofit2.Response<TaskPoint>
 

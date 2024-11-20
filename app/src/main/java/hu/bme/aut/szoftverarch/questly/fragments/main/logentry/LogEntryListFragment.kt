@@ -1,4 +1,4 @@
-package hu.bme.aut.szoftverarch.questly.fragments.main
+package hu.bme.aut.szoftverarch.questly.fragments.main.logentry
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource

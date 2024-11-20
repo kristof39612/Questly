@@ -64,6 +64,7 @@ import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.StarRating
 import hu.bme.aut.szoftverarch.questly.graphics.TaskCompletionDialog
+import hu.bme.aut.szoftverarch.questly.graphics.taskPointIcon
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -198,12 +199,8 @@ fun HomeScreenFragment(navController: NavController) {
         ) {
             if(currentTaskpointId == "") {
                 taskPoints.forEach { taskPoint ->
-                    val icon = when (taskPoint.task::class.java.simpleName) {
-                        "TextPromptTask" -> R.drawable.ic_abc
-                        "GoToPointTask" -> R.drawable.ic_walking
-                        "SingleChoiceTask" -> R.drawable.ic_selection
-                        else -> R.drawable.ic_home
-                    }
+
+                    val icon = taskPointIcon(taskPoint)
 
                     Marker(
                         state = MarkerState(position = taskPoint.getGoogleLatLng()),
@@ -339,26 +336,6 @@ fun HomeScreenFragment(navController: NavController) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 StarRating(rating = taskPoint.rating)
-                // Display task-specific details
-                /*when (val task = taskPoint.task) {
-                    is TextPromptTask -> {
-                        Text("Question: ${task.question}")
-                        Text("Answer: ${task.answer}")
-                    }
-                    is GoToPointTask -> {
-                        Text("Destination: ${task.where.latitude}, ${task.where.longitude}")
-                    }
-                    is SingleChoiceTask -> {
-                        Text("Question: ${task.question}")
-                        task.choices.forEachIndexed { index, answer ->
-                            Text("Option ${index + 1}: $answer")
-                        }
-                        Text("Correct Answer: ${task.correctAnswer + 1}")
-                    }
-                    else -> {
-                        Text("Unknown task type")
-                    }
-                }*/
                 Text(stringResource(R.string.taskIdLabel) + " ${taskPoint.id}")
                 Text(stringResource(R.string.locationLabel)+": ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
 
