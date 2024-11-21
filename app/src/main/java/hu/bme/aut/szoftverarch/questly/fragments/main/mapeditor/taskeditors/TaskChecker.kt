@@ -21,6 +21,9 @@ fun taskChecker(
             if(question.isEmpty() || textPromptAnswer.isEmpty()){
                 throw IllegalArgumentException("Question and answer must not be empty")
             }
+            if(question.isBlank() || textPromptAnswer.isBlank()){
+                throw IllegalArgumentException("Question and answer must not be blank")
+            }
             if(question.length > 100 || textPromptAnswer.length > 100){
                 throw IllegalArgumentException("Question and answer must not be longer than 100 characters")
             }
@@ -32,6 +35,9 @@ fun taskChecker(
         "Single Choice Task" -> {
             if(question.isEmpty()){
                 throw IllegalArgumentException("Question must not be empty")
+            }
+            if (question.isBlank()){
+                throw IllegalArgumentException("Question must not be blank")
             }
             if(singleChoiceCorrectAnswerIndex == -1){
                 throw IllegalArgumentException("Correct answer must be selected")
@@ -56,6 +62,9 @@ fun taskChecker(
             }
             if(question.length < 5 || filteredSingleChoiceAnswers.any { it.length < 5 }){
                 throw IllegalArgumentException("Question and answers must be at least 5 characters long")
+            }
+            if(filteredSingleChoiceAnswers.any {it.isBlank()}){
+                throw IllegalArgumentException("Answers must not be blank")
             }
             return SingleChoiceTask(question, filteredSingleChoiceAnswers, singleChoiceCorrectAnswerIndex)
         }

@@ -1,6 +1,10 @@
 package hu.bme.aut.szoftverarch.questly.data.utils
 
 import com.google.android.gms.maps.model.LatLng
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class LatLong(
     internal var latitude: Double,
@@ -19,10 +23,10 @@ class LatLong(
             val earthRadius = 6371000.0 // meters
             val dLat = Math.toRadians(other.latitude - this.latitude)
             val dLon = Math.toRadians(other.longitude - this.longitude)
-            val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                    Math.cos(Math.toRadians(this.latitude)) * Math.cos(Math.toRadians(other.latitude)) *
-                    Math.sin(dLon / 2) * Math.sin(dLon / 2)
-            val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+            val a = sin(dLat / 2) * sin(dLat / 2) +
+                    cos(Math.toRadians(this.latitude)) * cos(Math.toRadians(other.latitude)) *
+                    sin(dLon / 2) * sin(dLon / 2)
+            val c = 2 * atan2(sqrt(a), sqrt(1 - a))
             return earthRadius * c
         }
     }

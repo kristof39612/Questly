@@ -31,7 +31,8 @@ import hu.bme.aut.szoftverarch.questly.graphics.taskTypeIcon
 @Composable
 fun MapReviewComposable(
     latLng: LatLng,
-    type: String
+    type: String,
+    textToAppearOnTop: String = "Review your Task Point's location"
 ){
     val context = LocalContext.current
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -41,7 +42,7 @@ fun MapReviewComposable(
             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
         )
         Text(
-            "Review your Task Point's location",
+            textToAppearOnTop,
             modifier = Modifier.padding(top = 4.dp, bottom = 4.dp).align(
                 Alignment.CenterHorizontally
             ),
@@ -51,7 +52,7 @@ fun MapReviewComposable(
         GoogleMap(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp),
+                .height(175.dp),
             cameraPositionState = rememberCameraPositionState {
                 position = CameraPosition.fromLatLngZoom(
                     latLng, 17f)

@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -39,6 +40,7 @@ import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
+import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditGoToPointTaskComposable
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditSingleChoiceTaskComposable
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditTextPromptTaskComposable
@@ -46,6 +48,7 @@ import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.task
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.getBitmapFromVectorDrawable
 import hu.bme.aut.szoftverarch.questly.graphics.taskTypeIcon
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,9 +58,11 @@ fun TaskEditorFragment(
     taskID: String = "-1"
 ) {
     val context = LocalContext.current
-    val taskPointDao = TaskPointDatabase.getInstance(context).taskPointDao()
+    val scope = rememberCoroutineScope()
     val apiService = RetrofitInstance.getAuthorizedApi(context)
+    val taskPointDao = TaskPointDatabase.getInstance(context).taskPointDao()
     val userRole = context.getSharedPreferences("UserData", 0).getString("userRole", "USER")
+
     var showProgress by remember { mutableStateOf(false) }
     val taskPoint = remember { mutableStateOf<TaskPoint?>(null) }
     val taskPointLocation = remember { mutableStateOf(LatLong(0.0, 0.0)) }
@@ -74,6 +79,10 @@ fun TaskEditorFragment(
     var singleChoiceCorrectAnswerIndex by remember { mutableIntStateOf(-1) }
     var gotoLocation by remember { mutableStateOf(LatLong(0.0, 0.0)) }
     val bpcenter = LatLng(47.4977309, 19.0506962)
+    var finalizeDatSheet by remember { mutableStateOf(false) }
+
+    /// Finalizer values
+    val taskPointName = remember { mutableStateOf("") }
 
     if (showProgress) {
         LoadingDialog("Loading...")
@@ -93,81 +102,102 @@ fun TaskEditorFragment(
         }
     }
 
+
+
     if (taskPoint.value != null) {
         Text("TaskLoadedFromServer")
     } else if (taskPointLocation.value.latitude != 0.0 && taskPointLocation.value.longitude != 0.0) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)) {
-            ExposedDropdownMenuBox(
-                expanded = dropdownExpanded,
-                onExpandedChange = { dropdownExpanded = !dropdownExpanded }
-            ) {
-                TextField(
-                    value = selectedTaskType,
-                    onValueChange = { },
-                    readOnly = true,
-                    label = { Text("Task type") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded)
-                    },
-                    leadingIcon = {
-                        Image(
-                            bitmap = getBitmapFromVectorDrawable(
-                                context,
-                                taskTypeIcon(selectedTaskType)
-                            ).asImageBitmap(),
-                            contentDescription = "Task type icon",
-                            modifier = Modifier
-                                .onGloballyPositioned { coordinates ->
-                                    mTextFieldSize = coordinates.size.toSize()
-                                }
-                                .padding(8.dp)
-                        )
-                    },
-                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                    modifier = Modifier
-                        .menuAnchor(MenuAnchorType.PrimaryEditable, true)
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            if (!finalizeDatSheet) {
+                ExposedDropdownMenuBox(
                     expanded = dropdownExpanded,
-                    onDismissRequest = { dropdownExpanded = false },
+                    onExpandedChange = { dropdownExpanded = !dropdownExpanded }
                 ) {
-                    taskTypes.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                selectedTaskType = option
-                                dropdownExpanded = false
-                            }
+                    TextField(
+                        value = selectedTaskType,
+                        onValueChange = { },
+                        readOnly = true,
+                        label = { Text("Task type") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded)
+                        },
+                        leadingIcon = {
+                            Image(
+                                bitmap = getBitmapFromVectorDrawable(
+                                    context,
+                                    taskTypeIcon(selectedTaskType)
+                                ).asImageBitmap(),
+                                contentDescription = "Task type icon",
+                                modifier = Modifier
+                                    .onGloballyPositioned { coordinates ->
+                                        mTextFieldSize = coordinates.size.toSize()
+                                    }
+                                    .padding(8.dp)
+                            )
+                        },
+                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor(MenuAnchorType.PrimaryEditable, true)
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false },
+                    ) {
+                        taskTypes.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    selectedTaskType = option
+                                    dropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.90f)
+                ) {
+                    when (selectedTaskType) {
+                        "Text Prompt Task" -> EditTextPromptTaskComposable(
+                            latLng = taskPointLocation.value.toGoogleLatLong(),
+                            question = question.value,
+                            answer = textPromptAnswer.value,
+                            onQuestionChange = { question.value = it },
+                            onAnswerChange = { textPromptAnswer.value = it })
+
+                        "Single Choice Task" -> EditSingleChoiceTaskComposable(
+                            latLng = taskPointLocation.value.toGoogleLatLong(),
+                            question = question.value,
+                            answers = singleChoiceAnswers,
+                            correctAnswerIndex = singleChoiceCorrectAnswerIndex,
+                            onQuestionChange = { question.value = it },
+                            onAnswerChange = { index, newVal ->
+                                singleChoiceAnswers = singleChoiceAnswers.toMutableList()
+                                    .apply { this[index] = newVal }
+                            },
+                            onCorrectAnswerChange = { singleChoiceCorrectAnswerIndex = it }
+                        )
+
+                        "Go To a Point Task" -> EditGoToPointTaskComposable(
+                            onLocationChange = { gotoLocation = it }
                         )
                     }
                 }
-            }
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.90f)) {
-                when (selectedTaskType) {
-                    "Text Prompt Task" -> EditTextPromptTaskComposable(
-                        latLng = taskPointLocation.value.toGoogleLatLong(),
-                        question = question.value,
-                        answer = textPromptAnswer.value,
-                        onQuestionChange = { question.value = it },
-                        onAnswerChange = { textPromptAnswer.value = it })
-                    "Single Choice Task" -> EditSingleChoiceTaskComposable(
-                        latLng = taskPointLocation.value.toGoogleLatLong(),
-                        question = question.value,
-                        answers = singleChoiceAnswers,
-                        correctAnswerIndex = singleChoiceCorrectAnswerIndex,
-                        onQuestionChange = { question.value = it },
-                        onAnswerChange = { index, newVal -> singleChoiceAnswers = singleChoiceAnswers.toMutableList().apply { this[index] = newVal } },
-                        onCorrectAnswerChange = { singleChoiceCorrectAnswerIndex = it }
-                        )
-                    "Go To a Point Task" -> EditGoToPointTaskComposable(
-                        onLocationChange = { gotoLocation = it }
-                    )
-                }
+            } else {        /// Finalizer
+                TaskFinalizerComposable(
+                    taskPointName = taskPointName.value,
+                    onTaskPointNameChanged = { taskPointName.value = it },
+                    taskPointLocation = taskPointLocation.value,
+                    selectedTaskType = selectedTaskType,
+                    gotoLocation = gotoLocation
+                )
             }
             if (selectedTaskType != "Select a task type from the list...") {
                 HorizontalDivider(
@@ -183,7 +213,7 @@ fun TaskEditorFragment(
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
                         onClick = {
                             try {
-                                taskChecker(
+                                val finalizedTask = taskChecker(
                                     selectedTaskType,
                                     taskPointLocation.value,
                                     question.value,
@@ -192,6 +222,47 @@ fun TaskEditorFragment(
                                     singleChoiceCorrectAnswerIndex,
                                     gotoLocation
                                 )
+                                if(finalizeDatSheet) {
+                                    if (taskPointName.value.length < 5 || taskPointName.value.length > 25)
+                                        throw IllegalArgumentException("Task Point name must be between 5 and 25 characters")
+                                    else {
+                                        val createdTP = TaskPoint(
+                                            id = 99999,
+                                            task = finalizedTask,
+                                            status = StatusEnum.PENDING,
+                                            location = taskPointLocation.value,
+                                            authorUserId = context.getSharedPreferences(
+                                                "UserData",
+                                                0
+                                            ).getString("userID", "-1")!!,
+                                            rating = 0.0f,
+                                            title = taskPointName.value
+                                        )
+                                        showProgress = true
+                                        scope.launch {
+                                            val response = apiService.createTaskPoint(createdTP)
+                                            if (response.isSuccessful) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Task Point created successfully",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                navController.popBackStack()
+
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Failed to create Task Point",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                            taskPointDao.insertAll(response.body()!!)
+                                            showProgress = false
+                                        }
+                                    }
+                                } else {
+                                    finalizeDatSheet = true
+                                }
                             } catch (e: IllegalArgumentException) {
                                 Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
                             }
@@ -202,10 +273,13 @@ fun TaskEditorFragment(
                     Button(
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         onClick = {
-                            navController.popBackStack()
+                            if(finalizeDatSheet)
+                                finalizeDatSheet = false
+                            else
+                                navController.popBackStack()
                         }
                     ) {
-                        Text(" Abort ")
+                        Text("Cancel", color = Color.White)
                     }
                 }
             }
@@ -214,5 +288,4 @@ fun TaskEditorFragment(
         }
 
     }
-
 }
