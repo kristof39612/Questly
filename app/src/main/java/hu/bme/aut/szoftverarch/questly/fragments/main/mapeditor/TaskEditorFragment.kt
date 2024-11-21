@@ -34,10 +34,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.navigation.NavController
+import com.google.android.gms.maps.model.LatLng
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
+import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditGoToPointTaskComposable
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditSingleChoiceTaskComposable
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditTextPromptTaskComposable
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.taskChecker
@@ -70,7 +72,8 @@ fun TaskEditorFragment(
     val textPromptAnswer = remember { mutableStateOf("") }
     var singleChoiceAnswers by remember { mutableStateOf(List(5) { "" }) }
     var singleChoiceCorrectAnswerIndex by remember { mutableIntStateOf(-1) }
-
+    var gotoLocation by remember { mutableStateOf(LatLong(0.0, 0.0)) }
+    val bpcenter = LatLng(47.4977309, 19.0506962)
 
     if (showProgress) {
         LoadingDialog("Loading...")
@@ -161,6 +164,9 @@ fun TaskEditorFragment(
                         onAnswerChange = { index, newVal -> singleChoiceAnswers = singleChoiceAnswers.toMutableList().apply { this[index] = newVal } },
                         onCorrectAnswerChange = { singleChoiceCorrectAnswerIndex = it }
                         )
+                    "Go To a Point Task" -> EditGoToPointTaskComposable(
+                        onLocationChange = { gotoLocation = it }
+                    )
                 }
             }
             if (selectedTaskType != "Select a task type from the list...") {
@@ -179,10 +185,12 @@ fun TaskEditorFragment(
                             try {
                                 taskChecker(
                                     selectedTaskType,
+                                    taskPointLocation.value,
                                     question.value,
                                     textPromptAnswer.value,
                                     singleChoiceAnswers,
-                                    singleChoiceCorrectAnswerIndex
+                                    singleChoiceCorrectAnswerIndex,
+                                    gotoLocation
                                 )
                             } catch (e: IllegalArgumentException) {
                                 Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()

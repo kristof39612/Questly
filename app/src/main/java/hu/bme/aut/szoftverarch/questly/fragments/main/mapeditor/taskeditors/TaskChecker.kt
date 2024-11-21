@@ -5,13 +5,16 @@ import hu.bme.aut.szoftverarch.questly.data.tasks.SingleChoiceTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.Task
 import hu.bme.aut.szoftverarch.questly.data.tasks.TextPromptTask
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
+import hu.bme.aut.szoftverarch.questly.data.utils.LatLong.Companion.distanceTo
 
 fun taskChecker(
     taskType: String,
+    taskPointLocation: LatLong,
     question: String,
     textPromptAnswer: String,
     singleChoiceAnswers: List<String>,
-    singleChoiceCorrectAnswerIndex: Int
+    singleChoiceCorrectAnswerIndex: Int,
+    gotoLocation: LatLong
 ): Task{
     when(taskType){
         "Text Prompt Task" -> {
@@ -57,7 +60,13 @@ fun taskChecker(
             return SingleChoiceTask(question, filteredSingleChoiceAnswers, singleChoiceCorrectAnswerIndex)
         }
         "Go To a Point Task" -> {
-            return GoToPointTask(LatLong(0.0, 0.0))
+            if(gotoLocation == LatLong(0.0, 0.0)){
+                throw IllegalArgumentException("Location must be selected")
+            }
+            if(taskPointLocation.distanceTo(gotoLocation) > 1000){
+                throw IllegalArgumentException("Location must be within 1 km of the task point")
+            }
+            return GoToPointTask(gotoLocation)
         }
         else -> throw IllegalArgumentException("Invalid task type")
     }
