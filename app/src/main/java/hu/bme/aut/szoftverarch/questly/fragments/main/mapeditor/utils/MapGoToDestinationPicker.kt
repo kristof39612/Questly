@@ -1,21 +1,17 @@
 package hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.utils
 
 import android.annotation.SuppressLint
-import android.content.Context
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
@@ -30,12 +26,13 @@ import hu.bme.aut.szoftverarch.questly.graphics.getBitmapFromVectorDrawable
 fun MapGoToDestinationPicker(
     createFromScratch: Boolean,
     initialLoc: LatLng,
+    taskPointLoc: LatLng,
     updateMarkerLocation: (LatLng) -> Unit
 ) {
     val context = LocalContext.current
     val cameraPositionState = rememberCameraPositionState {
         position = if(initialLoc == LatLng(0.0,0.0))
-            CameraPosition.fromLatLngZoom(LatLng(47.4977309, 19.0506962), 15f) // Initial camera position
+            CameraPosition.fromLatLngZoom(taskPointLoc, 15f) // Initial camera position
         else
             CameraPosition.fromLatLngZoom(initialLoc, 15f) // Initial camera position
     }
@@ -91,7 +88,25 @@ fun MapGoToDestinationPicker(
                         )
                     ),
                 )
+            Marker(
+                state = MarkerState(position = taskPointLoc),
+                icon = BitmapDescriptorFactory.fromBitmap(
+                    getBitmapFromVectorDrawable(
+                        context,
+                        R.drawable.ic_walking,
+                        StatusEnum.PENDING
+                    )
+                ),
+            )
+            Circle(
+                center = taskPointLoc,
+                radius = 1000.0,
+                strokeColor = Color.Red,
+                strokeWidth = 2f,
+                fillColor = Color(0x5500FF00)
+            )
         }
 
     }
+
 }

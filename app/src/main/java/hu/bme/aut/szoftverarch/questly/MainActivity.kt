@@ -203,7 +203,12 @@ fun MainScreen(drawerState: DrawerState) {
                    val role = response.body()
                    val editor = sharedPreferences.edit()
                    if (role != null) {
-                       editor.putString("userRole", role.toString())
+                       val crole = when (role) {
+                           1L -> "ADMIN"
+                           0L -> "USER"
+                           else -> "USER"
+                       }
+                       editor.putString("userRole", crole)
                    }
                    editor.apply()
                }
@@ -248,6 +253,15 @@ fun MainScreen(drawerState: DrawerState) {
                         }
                         append(userPoints.toString())
                     }, style = MaterialTheme.typography.bodyLarge)
+                    if(sharedPreferences.getString("userRole", "USER") == "ADMIN"){
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Administrator")
+                            }
+                        }, style = MaterialTheme.typography.bodyLarge, color = Color.Red)
+
+                    }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                     ModernButton(
                         icon = painterResource(id = R.drawable.ic_handyman),

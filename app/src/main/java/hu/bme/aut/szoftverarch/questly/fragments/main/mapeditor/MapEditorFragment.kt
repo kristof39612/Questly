@@ -75,8 +75,8 @@ fun MapEditorFragment(
     val selectedTaskPoint = remember { mutableStateOf<TaskPoint?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showProgress by remember { mutableStateOf(false) }
-    val userID = context.getSharedPreferences("UserData", 0).getString("userID", "-1")
     val tempMarkerPosition = remember { mutableStateOf<LatLng?>(null) }
+    val userRole = context.getSharedPreferences("UserData", 0).getString("userRole", "USER")
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(bpcenter, 15f)
@@ -184,17 +184,19 @@ fun MapEditorFragment(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text("Author User ID: ${taskPoint.authorUserId}")
                     Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                sheetState.hide()
-                                selectedTaskPoint.value = null
-                            }
-                            navController.navigate("edit/taskpoint/${taskPoint.id}")
-                        },
-                        enabled = userID == taskPoint.authorUserId
-                    ) {
-                        Text("Edit")
+
+                    if(userRole == "ADMIN"){
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    sheetState.hide()
+                                    selectedTaskPoint.value = null
+                                }
+                                navController.navigate("edit/taskpoint/${taskPoint.id}")
+                            },
+                        ) {
+                            Text("Edit")
+                        }
                     }
                 }
             }

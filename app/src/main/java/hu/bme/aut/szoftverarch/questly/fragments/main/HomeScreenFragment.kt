@@ -61,6 +61,7 @@ import com.google.maps.android.compose.Marker
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.data.networking.StartStopTaskRequest
 import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
+import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.StarRating
 import hu.bme.aut.szoftverarch.questly.graphics.TaskCompletionDialog
@@ -199,25 +200,26 @@ fun HomeScreenFragment(navController: NavController) {
         ) {
             if(currentTaskpointId == "") {
                 taskPoints.forEach { taskPoint ->
+                    if(taskPoint.status == StatusEnum.APPROVED) {
+                        val icon = taskPointIcon(taskPoint)
 
-                    val icon = taskPointIcon(taskPoint)
-
-                    Marker(
-                        state = MarkerState(position = taskPoint.getGoogleLatLng()),
-                        icon = BitmapDescriptorFactory.fromBitmap(
-                            getBitmapFromVectorDrawable(
-                                context,
-                                icon
-                            )
-                        ),
-                        onClick = {
-                            selectedTaskPoint.value = taskPoint
-                            scope.launch {
-                                sheetState.show() // Show the bottom sheet
+                        Marker(
+                            state = MarkerState(position = taskPoint.getGoogleLatLng()),
+                            icon = BitmapDescriptorFactory.fromBitmap(
+                                getBitmapFromVectorDrawable(
+                                    context,
+                                    icon
+                                )
+                            ),
+                            onClick = {
+                                selectedTaskPoint.value = taskPoint
+                                scope.launch {
+                                    sheetState.show() // Show the bottom sheet
+                                }
+                                true
                             }
-                            true
-                        }
-                    )
+                        )
+                    }
                 }
             } else if (currentTaskPoint != null) {
                 val icon = when (currentTaskPoint!!.task::class.java.simpleName) {

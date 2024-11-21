@@ -18,6 +18,7 @@ import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.utils.MapGoToDes
 fun EditGoToPointTaskComposable(
     createFromScratch : Boolean,
     initialLocation: LatLng,
+    taskPointLocation: LatLng,
     onLocationChange: (LatLong) -> Unit,
 ) {
     Column(modifier = Modifier.padding(4.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -31,7 +32,8 @@ fun EditGoToPointTaskComposable(
             onLocationChange(LatLong(it.latitude, it.longitude))
         },
             createFromScratch = createFromScratch,
-            initialLoc = initialLocation
+            initialLoc = initialLocation,
+            taskPointLoc = taskPointLocation
         )
     }
 }

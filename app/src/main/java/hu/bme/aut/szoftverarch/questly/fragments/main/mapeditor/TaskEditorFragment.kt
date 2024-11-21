@@ -35,7 +35,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.navigation.NavController
-import com.google.android.gms.maps.model.LatLng
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
@@ -81,7 +80,6 @@ fun TaskEditorFragment(
     var singleChoiceAnswers by remember { mutableStateOf(List(5) { "" }) }
     var singleChoiceCorrectAnswerIndex by remember { mutableIntStateOf(-1) }
     var gotoLocation by remember { mutableStateOf(LatLong(0.0, 0.0)) }
-    val bpcenter = LatLng(47.4977309, 19.0506962)
     var finalizeDatSheet by remember { mutableStateOf(false) }
 
     /// Finalizer values
@@ -193,7 +191,6 @@ fun TaskEditorFragment(
                     when (selectedTaskType) {
                         "Text Prompt Task" -> EditTextPromptTaskComposable(
                             createFromScratch = createFromScratch,
-                            latLng = taskPointLocation.value.toGoogleLatLong(),
                             question = question.value,
                             answer = textPromptAnswer.value,
                             onQuestionChange = { question.value = it },
@@ -201,7 +198,6 @@ fun TaskEditorFragment(
 
                         "Single Choice Task" -> EditSingleChoiceTaskComposable(
                             createFromScratch = createFromScratch,
-                            latLng = taskPointLocation.value.toGoogleLatLong(),
                             question = question.value,
                             answers = singleChoiceAnswers,
                             correctAnswerIndex = singleChoiceCorrectAnswerIndex,
@@ -215,6 +211,7 @@ fun TaskEditorFragment(
 
                         "Go To a Point Task" -> EditGoToPointTaskComposable(
                             initialLocation = gotoLocation.toGoogleLatLong(),
+                            taskPointLocation = taskPointLocation.value.toGoogleLatLong(),
                             createFromScratch = createFromScratch,
                             onLocationChange = { gotoLocation = it }
                         )
@@ -239,83 +236,146 @@ fun TaskEditorFragment(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
-                        onClick = {
-                            try {
-                                val finalizedTask = taskChecker(
-                                    selectedTaskType,
-                                    taskPointLocation.value,
-                                    question.value,
-                                    textPromptAnswer.value,
-                                    singleChoiceAnswers,
-                                    singleChoiceCorrectAnswerIndex,
-                                    gotoLocation
-                                )
-                                if(finalizeDatSheet) {
-                                    if (taskPointName.value.length < 5 || taskPointName.value.length > 25)
-                                        throw IllegalArgumentException("Task Point name must be between 5 and 25 characters")
-                                    else {
-                                        val createdTP = TaskPoint(
-                                            id = 99999,
-                                            task = finalizedTask,
-                                            status = StatusEnum.PENDING,
-                                            location = taskPointLocation.value,
-                                            authorUserId = context.getSharedPreferences(
-                                                "UserData",
-                                                0
-                                            ).getString("userID", "-1")!!,
-                                            rating = 0.0f,
-                                            title = taskPointName.value
-                                        )
-                                        showProgress = true
-                                        scope.launch {
-                                            val response = apiService.createTaskPoint(createdTP)
-                                            if (response.isSuccessful) {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Task Point created successfully",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                navController.popBackStack()
+                    if (createFromScratch) {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
+                            onClick = {
+                                try {
+                                    val finalizedTask = taskChecker(
+                                        selectedTaskType,
+                                        taskPointLocation.value,
+                                        question.value,
+                                        textPromptAnswer.value,
+                                        singleChoiceAnswers,
+                                        singleChoiceCorrectAnswerIndex,
+                                        gotoLocation
+                                    )
+                                    if (finalizeDatSheet) {
+                                        if (taskPointName.value.length < 5 || taskPointName.value.length > 25)
+                                            throw IllegalArgumentException("Task Point name must be between 5 and 25 characters")
+                                        else {
+                                            val createdTP = TaskPoint(
+                                                id = 99999,
+                                                task = finalizedTask,
+                                                status = StatusEnum.PENDING,
+                                                location = taskPointLocation.value,
+                                                authorUserId = context.getSharedPreferences(
+                                                    "UserData",
+                                                    0
+                                                ).getString("userID", "-1")!!,
+                                                rating = 0.0f,
+                                                title = taskPointName.value
+                                            )
+                                            showProgress = true
+                                            scope.launch {
+                                                val response = apiService.createTaskPoint(createdTP)
+                                                if (response.isSuccessful) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Task Point created successfully",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    navController.popBackStack()
 
-                                            } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Failed to create Task Point",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Failed to create Task Point",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                                taskPointDao.insertAll(response.body()!!)
+                                                showProgress = false
                                             }
+                                        }
+                                    } else {
+                                        finalizeDatSheet = true
+                                    }
+                                } catch (e: IllegalArgumentException) {
+                                    Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        ) {
+                            Text("Submit", color = Color.White)
+                        }
+                        Button(
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                            onClick = {
+                                if (finalizeDatSheet)
+                                    finalizeDatSheet = false
+                                else
+                                    navController.popBackStack()
+                            }
+                        ) {
+                            Text("Cancel", color = Color.White)
+                        }
+                    } else if(userRole == "ADMIN") {
+                        if(taskPoint.value!!.status == StatusEnum.PENDING) {
+                            Button(
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
+                                onClick = {
+                                    showProgress = true
+                                    scope.launch {
+                                        val response = apiService.approveTaskPoint(taskPoint.value!!.id.toString())
+                                        if (response.isSuccessful) {
+                                            taskPointDao.delete(taskPoint.value!!)
                                             taskPointDao.insertAll(response.body()!!)
                                             showProgress = false
+                                            Toast.makeText(context, "Task Point approved", Toast.LENGTH_SHORT).show()
+                                            navController.popBackStack()
+                                        } else {
+                                            Toast.makeText(context, "Failed to approve Task Point", Toast.LENGTH_SHORT).show()
                                         }
                                     }
-                                } else {
-                                    finalizeDatSheet = true
                                 }
-                            } catch (e: IllegalArgumentException) {
-                                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                            ) {
+                                Text("Approve", color = Color.White)
+                            }
+                            Button(
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                                onClick = {
+                                    showProgress = true
+                                    scope.launch {
+                                        val response = apiService.rejectTaskPoint(taskPoint.value!!.id.toString())
+                                        if (response.isSuccessful) {
+                                            taskPointDao.delete(taskPoint.value!!)
+                                            taskPointDao.insertAll(response.body()!!)
+                                            showProgress = false
+                                            Toast.makeText(context, "Task Point rejected", Toast.LENGTH_SHORT).show()
+                                            navController.popBackStack()
+                                        } else {
+                                            Toast.makeText(context, "Failed to reject Task Point", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text("Reject", color = Color.White)
+                            }
+                        } else if (taskPoint.value!!.status == StatusEnum.REJECTED || taskPoint.value!!.status == StatusEnum.APPROVED) {
+                            Button(
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                                onClick = {
+                                    showProgress = true
+                                    scope.launch {
+                                        val response = apiService.deleteTaskPoint(taskPoint.value!!.id.toString())
+                                        if (response.isSuccessful) {
+                                            taskPointDao.delete(taskPoint.value!!)
+                                            showProgress = false
+                                            Toast.makeText(context, "Task Point deleted", Toast.LENGTH_SHORT).show()
+                                            navController.popBackStack()
+                                        } else {
+                                            Toast.makeText(context, "Failed to delete Task Point", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text("Delete", color = Color.White)
                             }
                         }
-                    ) {
-                        Text("Submit", color = Color.White)
-                    }
-                    Button(
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                        onClick = {
-                            if(finalizeDatSheet)
-                                finalizeDatSheet = false
-                            else
-                                navController.popBackStack()
-                        }
-                    ) {
-                        Text("Cancel", color = Color.White)
                     }
                 }
             }
 
-
         }
 
-    //} elseif
 }
