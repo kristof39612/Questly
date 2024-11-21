@@ -10,11 +10,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.google.android.gms.maps.model.LatLng
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.utils.MapGoToDestinationPicker
 
 @Composable
 fun EditGoToPointTaskComposable(
+    createFromScratch : Boolean,
+    initialLocation: LatLng,
     onLocationChange: (LatLong) -> Unit,
 ) {
     Column(modifier = Modifier.padding(4.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -26,6 +29,9 @@ fun EditGoToPointTaskComposable(
         Spacer(modifier = Modifier.padding(2.dp))
         MapGoToDestinationPicker(updateMarkerLocation = {
             onLocationChange(LatLong(it.latitude, it.longitude))
-        })
+        },
+            createFromScratch = createFromScratch,
+            initialLoc = initialLocation
+        )
     }
 }

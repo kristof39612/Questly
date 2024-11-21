@@ -39,6 +39,9 @@ import com.google.android.gms.maps.model.LatLng
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
+import hu.bme.aut.szoftverarch.questly.data.tasks.SingleChoiceTask
+import hu.bme.aut.szoftverarch.questly.data.tasks.TextPromptTask
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditGoToPointTaskComposable
@@ -62,7 +65,7 @@ fun TaskEditorFragment(
     val apiService = RetrofitInstance.getAuthorizedApi(context)
     val taskPointDao = TaskPointDatabase.getInstance(context).taskPointDao()
     val userRole = context.getSharedPreferences("UserData", 0).getString("userRole", "USER")
-
+    var createFromScratch by remember { mutableStateOf(false) }
     var showProgress by remember { mutableStateOf(false) }
     val taskPoint = remember { mutableStateOf<TaskPoint?>(null) }
     val taskPointLocation = remember { mutableStateOf(LatLong(0.0, 0.0)) }
@@ -102,25 +105,48 @@ fun TaskEditorFragment(
         }
     }
 
-
-
     if (taskPoint.value != null) {
-        Text("TaskLoadedFromServer")
-    } else if (taskPointLocation.value.latitude != 0.0 && taskPointLocation.value.longitude != 0.0) {
+        //Text("TaskLoadedFromServer")
+        when(taskPoint.value!!.task::class.java.simpleName){
+            "TextPromptTask" -> {
+                val task = taskPoint.value!!.task as TextPromptTask
+                question.value = task.question
+                textPromptAnswer.value = task.answer
+                selectedTaskType = "Text Prompt Task"
+            }
+            "SingleChoiceTask" -> {
+                val task = taskPoint.value!!.task as SingleChoiceTask
+                question.value = task.question
+                singleChoiceAnswers = task.choices.toMutableList()
+                singleChoiceCorrectAnswerIndex = task.correctAnswer
+                selectedTaskType = "Single Choice Task"
+            }
+            "GoToPointTask" -> {
+                val task = taskPoint.value!!.task as GoToPointTask
+                gotoLocation = task.where
+                selectedTaskType = "Go To a Point Task"
+            }
+        }
+        createFromScratch = false
+    } else {
+        createFromScratch = true
+    }
+    //else if (taskPointLocation.value.latitude != 0.0 && taskPointLocation.value.longitude != 0.0) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
         ) {
-            if (!finalizeDatSheet) {
+            if (!finalizeDatSheet) {    /// Show task details
                 ExposedDropdownMenuBox(
                     expanded = dropdownExpanded,
-                    onExpandedChange = { dropdownExpanded = !dropdownExpanded }
+                    onExpandedChange = {if(createFromScratch) dropdownExpanded = !dropdownExpanded }
                 ) {
                     TextField(
                         value = selectedTaskType,
                         onValueChange = { },
                         readOnly = true,
+                        enabled = createFromScratch,
                         label = { Text("Task type") },
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded)
@@ -166,6 +192,7 @@ fun TaskEditorFragment(
                 ) {
                     when (selectedTaskType) {
                         "Text Prompt Task" -> EditTextPromptTaskComposable(
+                            createFromScratch = createFromScratch,
                             latLng = taskPointLocation.value.toGoogleLatLong(),
                             question = question.value,
                             answer = textPromptAnswer.value,
@@ -173,6 +200,7 @@ fun TaskEditorFragment(
                             onAnswerChange = { textPromptAnswer.value = it })
 
                         "Single Choice Task" -> EditSingleChoiceTaskComposable(
+                            createFromScratch = createFromScratch,
                             latLng = taskPointLocation.value.toGoogleLatLong(),
                             question = question.value,
                             answers = singleChoiceAnswers,
@@ -186,6 +214,8 @@ fun TaskEditorFragment(
                         )
 
                         "Go To a Point Task" -> EditGoToPointTaskComposable(
+                            initialLocation = gotoLocation.toGoogleLatLong(),
+                            createFromScratch = createFromScratch,
                             onLocationChange = { gotoLocation = it }
                         )
                     }
@@ -287,5 +317,5 @@ fun TaskEditorFragment(
 
         }
 
-    }
+    //} elseif
 }

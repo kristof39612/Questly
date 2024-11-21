@@ -17,6 +17,7 @@ fun EditTextPromptTaskComposable(
     answer: String,
     onQuestionChange: (String) -> Unit,
     onAnswerChange: (String) -> Unit,
+    createFromScratch: Boolean
 ){
     //val question = remember { mutableStateOf("") }
     //val answer = remember { mutableStateOf("") }
@@ -24,6 +25,7 @@ fun EditTextPromptTaskComposable(
         Text("Specify a question for the players", modifier = Modifier.padding(top = 4.dp, bottom = 4.dp))
         OutlinedTextField(
             value = question,
+            enabled = createFromScratch,
             onValueChange = {
                 onQuestionChange(it)
                             },
@@ -35,6 +37,7 @@ fun EditTextPromptTaskComposable(
         Text("Give the correct answer to your question", modifier = Modifier.padding(top = 4.dp, bottom = 4.dp))
         OutlinedTextField(
             value = answer,
+            enabled = createFromScratch,
             onValueChange = {
                 onAnswerChange(it)
                             },

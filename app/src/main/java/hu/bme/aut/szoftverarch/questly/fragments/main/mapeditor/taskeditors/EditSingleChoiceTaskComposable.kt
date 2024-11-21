@@ -26,6 +26,7 @@ import com.google.android.gms.maps.model.LatLng
 
 @Composable
 fun EditSingleChoiceTaskComposable(
+    createFromScratch: Boolean,
     latLng: LatLng,
     question: String,
     answers: List<String>,
@@ -46,6 +47,7 @@ fun EditSingleChoiceTaskComposable(
         )
         OutlinedTextField(
             value = question,
+            enabled = createFromScratch,
             onValueChange = {
                 onQuestionChange(it)
                             },
@@ -67,6 +69,7 @@ fun EditSingleChoiceTaskComposable(
                     ){
                     OutlinedTextField(
                         value = answers[index],
+                        enabled = createFromScratch,
                         onValueChange = {
                             onAnswerChange(index, it)
                         },
@@ -75,6 +78,7 @@ fun EditSingleChoiceTaskComposable(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     RadioButton(
+                        enabled = createFromScratch,
                         selected = (correctAnswerIndex == index),
                         onClick = {
                             onCorrectAnswerChange(index)
@@ -82,38 +86,40 @@ fun EditSingleChoiceTaskComposable(
                     )
                     }
                 }
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Button(onClick = {
-                            if (answercount.intValue <= 4) {
-                                answercount.intValue += 1
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "You can only have max 5 answers!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                if(createFromScratch) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Button(onClick = {
+                                if (answercount.intValue <= 4) {
+                                    answercount.intValue += 1
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "You can only have max 5 answers!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }) {
+                                Text("Add answer")
                             }
-                        }) {
-                            Text("Add answer")
-                        }
-                        Button(onClick = {
-                            if (answercount.intValue >= 3) {
-                                answercount.intValue -= 1
-                                onAnswerChange(answercount.intValue, "")
-                                onCorrectAnswerChange(-1)
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "You need to have at least 2 answers!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                            Button(onClick = {
+                                if (answercount.intValue >= 3) {
+                                    answercount.intValue -= 1
+                                    onAnswerChange(answercount.intValue, "")
+                                    onCorrectAnswerChange(-1)
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "You need to have at least 2 answers!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }) {
+                                Text("Remove answer")
                             }
-                        }) {
-                            Text("Remove answer")
                         }
                     }
                 }
