@@ -1,5 +1,6 @@
 package hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,9 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -23,6 +21,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,6 +40,7 @@ import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditSingleChoiceTaskComposable
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.EditTextPromptTaskComposable
+import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors.taskChecker
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.getBitmapFromVectorDrawable
 import hu.bme.aut.szoftverarch.questly.graphics.taskTypeIcon
@@ -63,9 +63,13 @@ fun TaskEditorFragment(
     val taskTypes = listOf("Text Prompt Task", "Single Choice Task", "Go To a Point Task")
     var selectedTaskType by remember { mutableStateOf("Select a task type from the list...") }
     var dropdownExpanded by remember { mutableStateOf(false) }
-    val dropdownIcon =
-        if (dropdownExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown
     var mTextFieldSize by remember { mutableStateOf(Size.Zero) }
+
+    /// Task specific variables
+    val question = remember { mutableStateOf("") }
+    val textPromptAnswer = remember { mutableStateOf("") }
+    var singleChoiceAnswers by remember { mutableStateOf(List(5) { "" }) }
+    var singleChoiceCorrectAnswerIndex by remember { mutableIntStateOf(-1) }
 
 
     if (showProgress) {
@@ -89,11 +93,6 @@ fun TaskEditorFragment(
     if (taskPoint.value != null) {
         Text("TaskLoadedFromServer")
     } else if (taskPointLocation.value.latitude != 0.0 && taskPointLocation.value.longitude != 0.0) {
-        //Text("NewTaskFromLocation")
-        /*Surface(
-            modifier = Modifier
-                .padding(8.dp)
-        ) {*/
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)) {
@@ -147,8 +146,21 @@ fun TaskEditorFragment(
                 .fillMaxWidth()
                 .fillMaxHeight(0.90f)) {
                 when (selectedTaskType) {
-                    "Text Prompt Task" -> EditTextPromptTaskComposable(latLng = taskPointLocation.value.toGoogleLatLong())
-                    "Single Choice Task" -> EditSingleChoiceTaskComposable(latLng = taskPointLocation.value.toGoogleLatLong())
+                    "Text Prompt Task" -> EditTextPromptTaskComposable(
+                        latLng = taskPointLocation.value.toGoogleLatLong(),
+                        question = question.value,
+                        answer = textPromptAnswer.value,
+                        onQuestionChange = { question.value = it },
+                        onAnswerChange = { textPromptAnswer.value = it })
+                    "Single Choice Task" -> EditSingleChoiceTaskComposable(
+                        latLng = taskPointLocation.value.toGoogleLatLong(),
+                        question = question.value,
+                        answers = singleChoiceAnswers,
+                        correctAnswerIndex = singleChoiceCorrectAnswerIndex,
+                        onQuestionChange = { question.value = it },
+                        onAnswerChange = { index, newVal -> singleChoiceAnswers = singleChoiceAnswers.toMutableList().apply { this[index] = newVal } },
+                        onCorrectAnswerChange = { singleChoiceCorrectAnswerIndex = it }
+                        )
                 }
             }
             if (selectedTaskType != "Select a task type from the list...") {
@@ -164,7 +176,17 @@ fun TaskEditorFragment(
                     Button(
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF388E3C)),
                         onClick = {
-                            /* Handle submit action */
+                            try {
+                                taskChecker(
+                                    selectedTaskType,
+                                    question.value,
+                                    textPromptAnswer.value,
+                                    singleChoiceAnswers,
+                                    singleChoiceCorrectAnswerIndex
+                                )
+                            } catch (e: IllegalArgumentException) {
+                                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                            }
                         }
                     ) {
                         Text("Submit", color = Color.White)

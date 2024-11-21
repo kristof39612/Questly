@@ -16,11 +16,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,13 +26,16 @@ import com.google.android.gms.maps.model.LatLng
 
 @Composable
 fun EditSingleChoiceTaskComposable(
-    latLng: LatLng
+    latLng: LatLng,
+    question: String,
+    answers: List<String>,
+    correctAnswerIndex: Int,
+    onQuestionChange: (String) -> Unit,
+    onAnswerChange: (Int, String) -> Unit,
+    onCorrectAnswerChange: (Int) -> Unit
 ) {
     val answercount = remember { mutableIntStateOf(3) }
-    var question by remember { mutableStateOf("") }
-    var answers by remember { mutableStateOf(List(5) { "" }) }
     val context = LocalContext.current
-    var correctAnswerIndex by remember { mutableIntStateOf(-1) }
 
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -46,7 +46,9 @@ fun EditSingleChoiceTaskComposable(
         )
         OutlinedTextField(
             value = question,
-            onValueChange = {question = it},
+            onValueChange = {
+                onQuestionChange(it)
+                            },
             label = { Text("Question") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -65,10 +67,8 @@ fun EditSingleChoiceTaskComposable(
                     ){
                     OutlinedTextField(
                         value = answers[index],
-                        onValueChange = { newVal ->
-                            answers = answers.toMutableList().apply{
-                                this[index] = newVal
-                            }
+                        onValueChange = {
+                            onAnswerChange(index, it)
                         },
                         label = { Text("${index + 1}. Answer") },
                         modifier = Modifier.fillMaxWidth(0.90f)
@@ -76,7 +76,9 @@ fun EditSingleChoiceTaskComposable(
                     Spacer(modifier = Modifier.width(8.dp))
                     RadioButton(
                         selected = (correctAnswerIndex == index),
-                        onClick = { correctAnswerIndex = index }
+                        onClick = {
+                            onCorrectAnswerChange(index)
+                        }
                     )
                     }
                 }
@@ -101,10 +103,8 @@ fun EditSingleChoiceTaskComposable(
                         Button(onClick = {
                             if (answercount.intValue >= 3) {
                                 answercount.intValue -= 1
-                                answers = answers.toMutableList().apply{
-                                    this[answercount.intValue] = ""
-                                }
-                                correctAnswerIndex = -1
+                                onAnswerChange(answercount.intValue, "")
+                                onCorrectAnswerChange(-1)
                             } else {
                                 Toast.makeText(
                                     context,

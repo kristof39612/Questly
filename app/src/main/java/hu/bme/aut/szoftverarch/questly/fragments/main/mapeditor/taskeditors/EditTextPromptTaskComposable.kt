@@ -6,23 +6,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 
 @Composable
 fun EditTextPromptTaskComposable(
-    latLng: LatLng
+    latLng: LatLng,
+    question: String,
+    answer: String,
+    onQuestionChange: (String) -> Unit,
+    onAnswerChange: (String) -> Unit,
 ){
-    val question = remember { mutableStateOf("") }
-    val answer = remember { mutableStateOf("") }
+    //val question = remember { mutableStateOf("") }
+    //val answer = remember { mutableStateOf("") }
     Column(modifier = Modifier.fillMaxWidth().padding(4.dp)) {
         Text("Specify a question for the players", modifier = Modifier.padding(top = 4.dp, bottom = 4.dp))
         OutlinedTextField(
-            value = question.value,
-            onValueChange = {question.value = it},
+            value = question,
+            onValueChange = {
+                onQuestionChange(it)
+                            },
             label = { Text("Question") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -30,8 +34,10 @@ fun EditTextPromptTaskComposable(
         )
         Text("Give the correct answer to your question", modifier = Modifier.padding(top = 4.dp, bottom = 4.dp))
         OutlinedTextField(
-            value = answer.value,
-            onValueChange = {answer.value = it},
+            value = answer,
+            onValueChange = {
+                onAnswerChange(it)
+                            },
             label = { Text("Answer") },
             modifier = Modifier.fillMaxWidth()
         )
