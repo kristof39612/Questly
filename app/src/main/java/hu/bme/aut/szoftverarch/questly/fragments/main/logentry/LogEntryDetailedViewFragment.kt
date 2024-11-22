@@ -1,4 +1,4 @@
-package hu.bme.aut.szoftverarch.questly.fragments.main
+package hu.bme.aut.szoftverarch.questly.fragments.main.logentry
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap

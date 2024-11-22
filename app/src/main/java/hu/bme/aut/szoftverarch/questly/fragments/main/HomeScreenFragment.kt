@@ -61,9 +61,11 @@ import com.google.maps.android.compose.Marker
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.data.networking.StartStopTaskRequest
 import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
+import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.StarRating
 import hu.bme.aut.szoftverarch.questly.graphics.TaskCompletionDialog
+import hu.bme.aut.szoftverarch.questly.graphics.taskPointIcon
 
 
 @SuppressLint("UnrememberedMutableState")
@@ -198,29 +200,26 @@ fun HomeScreenFragment(navController: NavController) {
         ) {
             if(currentTaskpointId == "") {
                 taskPoints.forEach { taskPoint ->
-                    val icon = when (taskPoint.task::class.java.simpleName) {
-                        "TextPromptTask" -> R.drawable.ic_abc
-                        "GoToPointTask" -> R.drawable.ic_walking
-                        "SingleChoiceTask" -> R.drawable.ic_selection
-                        else -> R.drawable.ic_home
-                    }
+                    if(taskPoint.status == StatusEnum.APPROVED) {
+                        val icon = taskPointIcon(taskPoint)
 
-                    Marker(
-                        state = MarkerState(position = taskPoint.getGoogleLatLng()),
-                        icon = BitmapDescriptorFactory.fromBitmap(
-                            getBitmapFromVectorDrawable(
-                                context,
-                                icon
-                            )
-                        ),
-                        onClick = {
-                            selectedTaskPoint.value = taskPoint
-                            scope.launch {
-                                sheetState.show() // Show the bottom sheet
+                        Marker(
+                            state = MarkerState(position = taskPoint.getGoogleLatLng()),
+                            icon = BitmapDescriptorFactory.fromBitmap(
+                                getBitmapFromVectorDrawable(
+                                    context,
+                                    icon
+                                )
+                            ),
+                            onClick = {
+                                selectedTaskPoint.value = taskPoint
+                                scope.launch {
+                                    sheetState.show() // Show the bottom sheet
+                                }
+                                true
                             }
-                            true
-                        }
-                    )
+                        )
+                    }
                 }
             } else if (currentTaskPoint != null) {
                 val icon = when (currentTaskPoint!!.task::class.java.simpleName) {
@@ -339,26 +338,6 @@ fun HomeScreenFragment(navController: NavController) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 StarRating(rating = taskPoint.rating)
-                // Display task-specific details
-                /*when (val task = taskPoint.task) {
-                    is TextPromptTask -> {
-                        Text("Question: ${task.question}")
-                        Text("Answer: ${task.answer}")
-                    }
-                    is GoToPointTask -> {
-                        Text("Destination: ${task.where.latitude}, ${task.where.longitude}")
-                    }
-                    is SingleChoiceTask -> {
-                        Text("Question: ${task.question}")
-                        task.choices.forEachIndexed { index, answer ->
-                            Text("Option ${index + 1}: $answer")
-                        }
-                        Text("Correct Answer: ${task.correctAnswer + 1}")
-                    }
-                    else -> {
-                        Text("Unknown task type")
-                    }
-                }*/
                 Text(stringResource(R.string.taskIdLabel) + " ${taskPoint.id}")
                 Text(stringResource(R.string.locationLabel)+": ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
 

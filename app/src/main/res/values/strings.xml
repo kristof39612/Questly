@@ -22,7 +22,7 @@
     <string name="taskIdLabel">Task ID:</string>
     <string name="locationLabel">Location:</string>
     <string name="start">Start</string>
-    <string name="pointLabel">Point:</string>
+    <string name="pointLabel">Points:</string>
     <string name="usernameLabel">Username:</string>
     <string name="editor">Editor</string>
     <string name="log">Log</string>
@@ -32,4 +32,6 @@
     <string name="profileMenu">Profile</string>
     <string name="taskStartFailed">Failed to start task</string>
     <string name="taskCancelFailed">Failed to cancel task</string>
+    <string name="statusLabel">Status:</string>
+    <string name="roleLabel">Role:</string>
 </resources>

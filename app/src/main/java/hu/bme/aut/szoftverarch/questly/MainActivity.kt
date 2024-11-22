@@ -44,14 +44,17 @@ import hu.bme.aut.szoftverarch.questly.data.database.LogEntryDatabase
 import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.database.ToplistDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
+import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.graphics.LockScreenOrientation
 import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
-import hu.bme.aut.szoftverarch.questly.fragments.main.LogEntryDetailedViewFragment
-import hu.bme.aut.szoftverarch.questly.fragments.main.LogEntryListFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.logentry.LogEntryDetailedViewFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.logentry.LogEntryListFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SolveTaskScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.ToplistFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.MapEditorFragment
+import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.TaskEditorFragment
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
 
@@ -180,7 +183,39 @@ fun MainScreen(drawerState: DrawerState) {
                Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
                logmeout()
            }
-           finally {
+           try {
+               val response = apiService.getUserId()
+               if (response.isSuccessful) {
+                   val userId = response.body()
+                   val editor = sharedPreferences.edit()
+                   if (userId != null) {
+                       editor.putString("userID", userId.toString())
+                   }
+                   editor.apply()
+               }
+           } catch (e: Exception) {
+               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+               logmeout()
+           }
+           try {
+               val response = apiService.getUserRole()
+               if (response.isSuccessful) {
+                   val role = response.body()
+                   val editor = sharedPreferences.edit()
+                   if (role != null) {
+                       val crole = when (role) {
+                           1L -> "ADMIN"
+                           0L -> "USER"
+                           else -> "USER"
+                       }
+                       editor.putString("userRole", crole)
+                   }
+                   editor.apply()
+               }
+           } catch (e: Exception) {
+               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
+               logmeout()
+           } finally {
                showProgress = false
            }
        }
@@ -218,11 +253,29 @@ fun MainScreen(drawerState: DrawerState) {
                         }
                         append(userPoints.toString())
                     }, style = MaterialTheme.typography.bodyLarge)
+                    if(sharedPreferences.getString("userRole", "USER") == "ADMIN"){
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Administrator")
+                            }
+                        }, style = MaterialTheme.typography.bodyLarge, color = Color.Red)
+
+                    }
                     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                     ModernButton(
                         icon = painterResource(id = R.drawable.ic_handyman),
                         text = stringResource(R.string.editor),
-                        onClick = { /* Handle Map Editor click */ }
+                        onClick = {
+                            navController.navigate("mapeditor"){
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                            scope.launch { drawerState.close() }
+                        }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     ModernButton(
@@ -308,6 +361,19 @@ fun MainScreen(drawerState: DrawerState) {
                     val logEntryId = backStackEntry.arguments?.getString("logEntryId")
                     logEntryId?.let {
                         LogEntryDetailedViewFragment(navController = navController, logEntryId = it)
+                    }
+                }
+                composable("mapeditor") { MapEditorFragment(navController) }
+                composable("edit/taskpoint/{taskPointId}") { backStackEntry ->
+                    val taskPointId = backStackEntry.arguments?.getString("taskPointId")
+                    taskPointId?.let {
+                        TaskEditorFragment(taskID = it, navController = navController)
+                    }
+                }
+                composable("edit/newTaskpoint/{latlong}") { backStackEntry ->
+                    val latlong = backStackEntry.arguments?.getString("latlong")
+                    latlong?.let {
+                        TaskEditorFragment(location = LatLong.fromString(it), navController = navController)
                     }
                 }
             }

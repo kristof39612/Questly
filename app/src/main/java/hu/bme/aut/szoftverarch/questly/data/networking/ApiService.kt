@@ -9,6 +9,7 @@ import hu.bme.aut.szoftverarch.questly.data.TaskPoint
 import hu.bme.aut.szoftverarch.questly.data.entries.LogEntry
 import hu.bme.aut.szoftverarch.questly.data.entries.ToplistEntry
 import okhttp3.MultipartBody
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
@@ -22,6 +23,12 @@ interface ApiService {
     @POST("/auth/register")
     suspend fun register(@Body request: RegisterRequest) : retrofit2.Response<RegisterResponse>
 
+    @GET("/user/userID")
+    suspend fun getUserId(): retrofit2.Response<Long>
+
+    @GET("/user/role")
+    suspend fun getUserRole(): retrofit2.Response<Long>
+
     @GET("/taskpoint/{id}")
     suspend fun getTaskPointById(@Path("id") id: String): retrofit2.Response<TaskPoint>
 
@@ -30,6 +37,15 @@ interface ApiService {
 
     @GET("/taskpoint")
     suspend fun getTaskPoints(): retrofit2.Response<List<TaskPoint>>
+
+    @PATCH("/taskpoint/{id}/approve")
+    suspend fun approveTaskPoint(@Path("id") id: String): retrofit2.Response<TaskPoint>
+
+    @PATCH("/taskpoint/{id}/reject")
+    suspend fun rejectTaskPoint(@Path("id") id: String): retrofit2.Response<TaskPoint>
+
+    @DELETE("/taskpoint/{id}")
+    suspend fun deleteTaskPoint(@Path("id") id: String): retrofit2.Response<Unit>
 
     @GET("/leaderboard")
     suspend fun getToplist(): retrofit2.Response<List<ToplistEntry>>
