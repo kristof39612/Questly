@@ -1,6 +1,5 @@
 package hu.bme.aut.szoftverarch.questly.graphics
 
-import android.location.Location
 import com.google.android.gms.maps.model.LatLng
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong.Companion.distanceTo
