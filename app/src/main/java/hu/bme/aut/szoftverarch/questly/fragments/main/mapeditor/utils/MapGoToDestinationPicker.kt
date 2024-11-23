@@ -16,9 +16,12 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberCameraPositionState
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
+import hu.bme.aut.szoftverarch.questly.graphics.createHole
+import hu.bme.aut.szoftverarch.questly.graphics.createOuterBounds
 import hu.bme.aut.szoftverarch.questly.graphics.getBitmapFromVectorDrawable
 
 @SuppressLint("UnrememberedMutableState")
@@ -36,7 +39,7 @@ fun MapGoToDestinationPicker(
         else
             CameraPosition.fromLatLngZoom(initialLoc, 15f) // Initial camera position
     }
-
+    val bpcenter = LatLng(47.4977309, 19.0506962)
     // Observe changes in camera position and call `updateMarkerLocation`
     LaunchedEffect(cameraPositionState.isMoving) {
         if (!cameraPositionState.isMoving && createFromScratch) {
@@ -104,6 +107,12 @@ fun MapGoToDestinationPicker(
                 strokeColor = Color.Red,
                 strokeWidth = 2f,
                 fillColor = Color(0x5500FF00)
+            )
+            Polygon(
+                points = createOuterBounds(),
+                holes = listOf((createHole(bpcenter, 10000))),
+                fillColor = Color(0x55FF0000),
+                strokeWidth = 0f
             )
         }
 

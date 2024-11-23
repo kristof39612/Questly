@@ -161,39 +161,61 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 Button(
                     onClick = {
                         if(username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
-                            if (password == confirmPassword && emailTextFieldColor == Color.Transparent) {
-                                showProgress = true
-                                val rr = RegisterRequest(email = email,password = password,username=username)//, username = username)
-                                scope.launch {
-                                    try {
-                                        val serverResponse = apiService.register(rr)
-                                        if (serverResponse.isSuccessful) {
+                            if(password.length >= 8 ) {
+                                if (password == confirmPassword && emailTextFieldColor == Color.Transparent) {
+                                    showProgress = true
+                                    val rr = RegisterRequest(
+                                        email = email,
+                                        password = password,
+                                        username = username
+                                    )
+                                    scope.launch {
+                                        try {
+                                            val serverResponse = apiService.register(rr)
+                                            if (serverResponse.isSuccessful) {
+                                                if (serverResponse.body()!!.token != null) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        R.string.RegisterSuccess,
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                } else {
+                                                    serverResponse.body()!!.errorMessage.let {
+                                                        Toast.makeText(
+                                                            context,
+                                                            it,
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
+                                                }
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    R.string.RegisterFailed,
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        } catch (e: Exception) {
                                             Toast.makeText(
                                                 context,
-                                                R.string.RegisterSuccess,
+                                                R.string.backendUnavailable,
                                                 Toast.LENGTH_SHORT
                                             ).show()
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                R.string.RegisterFailed,
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                        } finally {
+                                            showProgress = false
                                         }
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            R.string.backendUnavailable,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    } finally {
-                                        showProgress = false
                                     }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.PasswordsDoNotMatch,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             } else {
                                 Toast.makeText(
                                     context,
-                                    R.string.PasswordsDoNotMatch,
+                                    R.string.PasswordTooShort,
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }

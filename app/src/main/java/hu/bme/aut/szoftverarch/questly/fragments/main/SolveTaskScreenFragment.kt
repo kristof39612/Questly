@@ -318,6 +318,7 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                         } else {
                             Toast.makeText(context, "Incorrect answer!", Toast.LENGTH_SHORT).show()
                         }
+                        showProgress = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
                     modifier = Modifier.fillMaxWidth()

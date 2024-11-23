@@ -58,6 +58,8 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.Polygon
+import hu.bme.aut.szoftverarch.questly.data.database.LogEntryDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.data.networking.StartStopTaskRequest
 import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
@@ -65,6 +67,8 @@ import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.StarRating
 import hu.bme.aut.szoftverarch.questly.graphics.TaskCompletionDialog
+import hu.bme.aut.szoftverarch.questly.graphics.createHole
+import hu.bme.aut.szoftverarch.questly.graphics.createOuterBounds
 import hu.bme.aut.szoftverarch.questly.graphics.taskPointIcon
 
 
@@ -76,6 +80,9 @@ fun HomeScreenFragment(navController: NavController) {
     val taskPoints = remember { mutableStateListOf<TaskPoint>() }
     val taskPointDatabase = remember { TaskPointDatabase.getInstance(context) }
     val taskPointDao = remember { taskPointDatabase.taskPointDao() }
+    val logentryDatabase = remember { LogEntryDatabase.getInstance(context) }
+    val logEntryDao = remember { logentryDatabase.logEntryDao() }
+    val userVisitedPoints = remember { mutableStateListOf<String>() }
     val scope = rememberCoroutineScope()
     val selectedTaskPoint = remember { mutableStateOf<TaskPoint?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -107,6 +114,8 @@ fun HomeScreenFragment(navController: NavController) {
         currentTaskpointId = sp.getString("currentTask", "") ?: ""
         scope.launch {
             val points = taskPointDao.queryAll()
+            userVisitedPoints.clear()
+            userVisitedPoints.addAll(logEntryDao.queryByUserId(context.getSharedPreferences("UserData", Context.MODE_PRIVATE).getString("userID", "") ?: ""))
             taskPoints.addAll(points)
         }
     }
@@ -200,7 +209,7 @@ fun HomeScreenFragment(navController: NavController) {
         ) {
             if(currentTaskpointId == "") {
                 taskPoints.forEach { taskPoint ->
-                    if(taskPoint.status == StatusEnum.APPROVED) {
+                    if(taskPoint.status == StatusEnum.APPROVED && !userVisitedPoints.contains(taskPoint.id.toString())){
                         val icon = taskPointIcon(taskPoint)
 
                         Marker(
@@ -283,6 +292,13 @@ fun HomeScreenFragment(navController: NavController) {
                     )
                 }
             }
+            /// GEOFENCE
+            Polygon(
+                points = createOuterBounds(),
+                holes = listOf((createHole(bpcenter, 10000))),
+                fillColor = Color(0x55FF0000),
+                strokeWidth = 0f
+            )
         }
     } else {
         Column(

@@ -1,11 +1,13 @@
 package hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.taskeditors
 
+import com.google.android.gms.maps.model.LatLng
 import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.SingleChoiceTask
 import hu.bme.aut.szoftverarch.questly.data.tasks.Task
 import hu.bme.aut.szoftverarch.questly.data.tasks.TextPromptTask
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong
 import hu.bme.aut.szoftverarch.questly.data.utils.LatLong.Companion.distanceTo
+import hu.bme.aut.szoftverarch.questly.graphics.checkIfInPlayArea
 
 fun taskChecker(
     taskType: String,
@@ -16,6 +18,7 @@ fun taskChecker(
     singleChoiceCorrectAnswerIndex: Int,
     gotoLocation: LatLong
 ): Task{
+    val bpcenter = LatLng(47.4977309, 19.0506962)
     when(taskType){
         "Text Prompt Task" -> {
             if(question.isEmpty() || textPromptAnswer.isEmpty()){
@@ -74,6 +77,9 @@ fun taskChecker(
             }
             if(taskPointLocation.distanceTo(gotoLocation) > 1000){
                 throw IllegalArgumentException("Location must be within 1 km of the task point")
+            }
+            if(!checkIfInPlayArea(gotoLocation.toGoogleLatLong(), bpcenter)){
+                throw IllegalArgumentException("Location must be within the play area")
             }
             return GoToPointTask(gotoLocation)
         }
