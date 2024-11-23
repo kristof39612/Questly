@@ -168,11 +168,21 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                                     try {
                                         val serverResponse = apiService.register(rr)
                                         if (serverResponse.isSuccessful) {
-                                            Toast.makeText(
-                                                context,
-                                                R.string.RegisterSuccess,
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            if(serverResponse.body()!!.token != null) {
+                                                Toast.makeText(
+                                                    context,
+                                                    R.string.RegisterSuccess,
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            } else {
+                                                serverResponse.body()!!.errorMessage.let {
+                                                    Toast.makeText(
+                                                        context,
+                                                        it,
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            }
                                         } else {
                                             Toast.makeText(
                                                 context,

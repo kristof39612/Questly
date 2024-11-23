@@ -60,27 +60,27 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
+        super.onCreate(savedInstanceState)
 
         //Main Content
-    setContent {
-        LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-        val drawerState = rememberDrawerState(DrawerValue.Closed)
-        val scope = rememberCoroutineScope()
+        setContent {
+            LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            val scope = rememberCoroutineScope()
 
-        MainScreen(drawerState)
+            MainScreen(drawerState)
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (drawerState.isOpen) {
-                    scope.launch { drawerState.close() }
-                } else {
-                    finish()
+            onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (drawerState.isOpen) {
+                        scope.launch { drawerState.close() }
+                    } else {
+                        finish()
+                    }
                 }
-            }
-        })
+            })
+        }
     }
-}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,9 +100,9 @@ fun MainScreen(drawerState: DrawerState) {
     var showProgress by remember { mutableStateOf(false) }
     var userPoints by remember { mutableIntStateOf(0) }
     var userName by remember { mutableStateOf("Anonymus") }
-    val sharedPreferences = context.getSharedPreferences("UserData",Context.MODE_PRIVATE)
+    val sharedPreferences = context.getSharedPreferences("UserData", Context.MODE_PRIVATE)
 
-    fun logmeout(){
+    fun logmeout() {
         val sp = context.getSharedPreferences("UserData", Context.MODE_PRIVATE)
         val editor = sp.edit()
         editor.clear()
@@ -117,109 +117,87 @@ fun MainScreen(drawerState: DrawerState) {
     }
 
     fun refreshFromBackend() {
-       showProgress = true
-       scope.launch {
-           try {
-               val response = apiService.getTaskPoints()
-               if (response.isSuccessful) {
-                   taskPointDao.deleteAll()
-                   for (taskPoint in response.body()!!) {
-                       taskPointDao.insertAll(taskPoint)
-                   }
-               }
-           } catch (e: Exception) {
-               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
-               logmeout()
-           }
-           try {
-               val response = apiService.getToplist()
-               if (response.isSuccessful) {
-                   toplistDao.deleteAll()
-                   for (entry in response.body()!!){
-                       toplistDao.insertAll(entry)
-                   }
-               }
-           } catch (e: Exception) {
-               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
-               logmeout()
-           }
-           try {
-               val response = apiService.getUserPoints()
-               if (response.isSuccessful) {
-                   val points = response.body()?.points
-                   userName = response.body()?.username ?: "Anonymus"
-                   userPoints = points ?: 0
-               }
-           } catch (e: Exception) {
-               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
-               logmeout()
-           }
-           try{
-               val response = apiService.getCurrentTask()
-               if(response.isSuccessful){
-                   val task = response.body()?.taskPointId
-                   if(task != null){
-                       val editor = sharedPreferences.edit()
-                       editor.putString("currentTask", task.toString())
-                       editor.apply()
-                   }
-               } else {
-                   sharedPreferences.edit().remove("currentTask").apply()
-               }
-           } catch (e: Exception) {
-               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
-               logmeout()
-           }
-           try{
-                val response = apiService.getLogEntries()
+        showProgress = true
+        scope.launch {
+            try {
+                val taskpointResp = apiService.getTaskPoints()
+                if (taskpointResp.isSuccessful) {
+                    taskPointDao.deleteAll()
+                    for (taskPoint in taskpointResp.body()!!) {
+                        taskPointDao.insertAll(taskPoint)
+                    }
+                }
+
+                val toplistResp = apiService.getToplist()
+                if (toplistResp.isSuccessful) {
+                    toplistDao.deleteAll()
+                    for (entry in toplistResp.body()!!) {
+                        toplistDao.insertAll(entry)
+                    }
+                }
+
+                val userpointResp = apiService.getUserPoints()
+                if (userpointResp.isSuccessful) {
+                    val points = userpointResp.body()?.points
+                    userName = userpointResp.body()?.username ?: "Anonymus"
+                    userPoints = points ?: 0
+                }
+
+                val ctaskResp = apiService.getCurrentTask()
+                if (ctaskResp.isSuccessful) {
+                    val task = ctaskResp.body()?.taskPointId
+                    if (task != null) {
+                        val editor = sharedPreferences.edit()
+                        editor.putString("currentTask", task.toString())
+                        editor.apply()
+                    }
+                } else {
+                    sharedPreferences.edit().remove("currentTask").apply()
+                }
+
+                val logentryResp = apiService.getLogEntries()
                 logentryDao.deleteAll()
-                if(response.isSuccessful) {
-                    val logEntries = response.body()
+                if (logentryResp.isSuccessful) {
+                    val logEntries = logentryResp.body()
                     for (entry in logEntries!!) {
                         logentryDao.insertAll(entry)
                     }
                 }
-           } catch (e: Exception) {
-               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
-               logmeout()
-           }
-           try {
-               val response = apiService.getUserId()
-               if (response.isSuccessful) {
-                   val userId = response.body()
-                   val editor = sharedPreferences.edit()
-                   if (userId != null) {
-                       editor.putString("userID", userId.toString())
-                   }
-                   editor.apply()
-               }
-           } catch (e: Exception) {
-               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
-               logmeout()
-           }
-           try {
-               val response = apiService.getUserRole()
-               if (response.isSuccessful) {
-                   val role = response.body()
-                   val editor = sharedPreferences.edit()
-                   if (role != null) {
-                       val crole = when (role) {
-                           1L -> "ADMIN"
-                           0L -> "USER"
-                           else -> "USER"
-                       }
-                       editor.putString("userRole", crole)
-                   }
-                   editor.apply()
-               }
-           } catch (e: Exception) {
-               Toast.makeText(context, context.getString(R.string.errorLabel) + " ${e.message}", Toast.LENGTH_SHORT).show()
-               logmeout()
-           } finally {
-               showProgress = false
-           }
-       }
-   }
+                val userIdResp = apiService.getUserId()
+                if (userIdResp.isSuccessful) {
+                    val userId = userIdResp.body()
+                    val editor = sharedPreferences.edit()
+                    if (userId != null) {
+                        editor.putString("userID", userId.toString())
+                    }
+                    editor.apply()
+                }
+                val userRoleResp = apiService.getUserRole()
+                if (userRoleResp.isSuccessful) {
+                    val role = userRoleResp.body()
+                    val editor = sharedPreferences.edit()
+                    if (role != null) {
+                        val crole = when (role) {
+                            1L -> "ADMIN"
+                            0L -> "USER"
+                            else -> "USER"
+                        }
+                        editor.putString("userRole", crole)
+                    }
+                    editor.apply()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.errorLabel) + " ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                logmeout()
+            } finally {
+                showProgress = false
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         refreshFromBackend()
@@ -242,7 +220,7 @@ fun MainScreen(drawerState: DrawerState) {
                     //val username = context.getSharedPreferences("UserData", 0).getString("userEmail", "placeholder")
                     Text(buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append(stringResource(R.string.usernameLabel)+ " ")
+                            append(stringResource(R.string.usernameLabel) + " ")
                         }
                         append(userName)
                     }, style = MaterialTheme.typography.bodyLarge)
@@ -253,7 +231,7 @@ fun MainScreen(drawerState: DrawerState) {
                         }
                         append(userPoints.toString())
                     }, style = MaterialTheme.typography.bodyLarge)
-                    if(sharedPreferences.getString("userRole", "USER") == "ADMIN"){
+                    if (sharedPreferences.getString("userRole", "USER") == "ADMIN") {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -267,7 +245,7 @@ fun MainScreen(drawerState: DrawerState) {
                         icon = painterResource(id = R.drawable.ic_handyman),
                         text = stringResource(R.string.editor),
                         onClick = {
-                            navController.navigate("mapeditor"){
+                            navController.navigate("mapeditor") {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
                                 }
@@ -282,7 +260,7 @@ fun MainScreen(drawerState: DrawerState) {
                         icon = painterResource(id = R.drawable.ic_menu_book),
                         text = stringResource(R.string.log),
                         onClick = {
-                            navController.navigate("logentries"){
+                            navController.navigate("logentries") {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
                                 }
@@ -322,7 +300,7 @@ fun MainScreen(drawerState: DrawerState) {
                             Column(modifier = Modifier.weight(0.13f)) {
                                 IconButton(onClick = {
                                     refreshFromBackend()
-                                }){
+                                }) {
                                     Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                                 }
                             }
@@ -373,7 +351,10 @@ fun MainScreen(drawerState: DrawerState) {
                 composable("edit/newTaskpoint/{latlong}") { backStackEntry ->
                     val latlong = backStackEntry.arguments?.getString("latlong")
                     latlong?.let {
-                        TaskEditorFragment(location = LatLong.fromString(it), navController = navController)
+                        TaskEditorFragment(
+                            location = LatLong.fromString(it),
+                            navController = navController
+                        )
                     }
                 }
             }
@@ -431,7 +412,12 @@ fun BottomNavigationBar(navController: NavController) {
             }
         )
         NavigationBarItem(
-            icon = { Icon(painterResource(id = R.drawable.ic_trophy), contentDescription = "Toplist") },
+            icon = {
+                Icon(
+                    painterResource(id = R.drawable.ic_trophy),
+                    contentDescription = "Toplist"
+                )
+            },
             label = { Text(stringResource(R.string.toplistMenu)) },
             selected = currentDestination?.hierarchy?.any { it.route == "toplist" } == true,
             onClick = {
