@@ -50,7 +50,6 @@ import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.logentry.LogEntryDetailedViewFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.logentry.LogEntryListFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
-import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SolveTaskScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.ToplistFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.MapEditorFragment
@@ -327,7 +326,6 @@ fun MainScreen(drawerState: DrawerState) {
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable("home") { HomeScreenFragment(navController) }
-                composable("settings") { SettingsScreen() }
                 composable("profile") { ProfileScreen(navController) }
                 composable("toplist") { ToplistFragment() }
                 composable("solveTask/{taskPointId}") { backStackEntry ->
@@ -425,21 +423,6 @@ fun BottomNavigationBar(navController: NavController) {
             selected = currentDestination?.hierarchy?.any { it.route == "toplist" } == true,
             onClick = {
                 navController.navigate("toplist") {
-                    popUpTo(navController.graph.startDestinationId) {
-                        saveState = true
-                        //inclusive = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settingsMenu)) },
-            label = { Text(stringResource(R.string.settingsMenu)) },
-            selected = currentDestination?.hierarchy?.any { it.route == "settings" } == true,
-            onClick = {
-                navController.navigate("settings") {
                     popUpTo(navController.graph.startDestinationId) {
                         saveState = true
                         //inclusive = true

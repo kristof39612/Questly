@@ -202,6 +202,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                                                         R.string.RegisterSuccess,
                                                         Toast.LENGTH_SHORT
                                                     ).show()
+                                                    onBackPressed()
                                                 } else {
                                                     serverResponse.body()!!.errorMessage.let {
                                                         Toast.makeText(
