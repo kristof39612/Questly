@@ -235,7 +235,7 @@ fun MainScreen(drawerState: DrawerState) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Administrator")
+                                append(stringResource(R.string.adminLabel))
                             }
                         }, style = MaterialTheme.typography.bodyLarge, color = Color.Red)
 
@@ -418,7 +418,7 @@ fun BottomNavigationBar(navController: NavController) {
             icon = {
                 Icon(
                     painterResource(id = R.drawable.ic_trophy),
-                    contentDescription = "Toplist"
+                    contentDescription = stringResource(R.string.toplistMenu)
                 )
             },
             label = { Text(stringResource(R.string.toplistMenu)) },
@@ -435,7 +435,7 @@ fun BottomNavigationBar(navController: NavController) {
             }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
+            icon = { Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settingsMenu)) },
             label = { Text(stringResource(R.string.settingsMenu)) },
             selected = currentDestination?.hierarchy?.any { it.route == "settings" } == true,
             onClick = {
@@ -450,7 +450,7 @@ fun BottomNavigationBar(navController: NavController) {
             }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Person, contentDescription = "Profile") },
+            icon = { Icon(Icons.Filled.Person, contentDescription = stringResource(R.string.profileMenu)) },
             label = { Text(stringResource(R.string.profileMenu)) },
             selected = currentDestination?.hierarchy?.any { it.route == "profile" } == true,
             onClick = {
