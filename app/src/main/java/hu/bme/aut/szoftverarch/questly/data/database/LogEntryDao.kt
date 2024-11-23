@@ -24,4 +24,7 @@ interface LogEntryDao {
     @Query("DELETE FROM logentry")
     suspend fun deleteAll()
 
+    @Query("SELECT visitedPointId FROM logentry WHERE userId= :userId")
+    suspend fun queryByUserId(userId: String): List<String>
+
 }

@@ -20,7 +20,7 @@ class LoginActivity : FragmentActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (supportFragmentManager.backStackEntryCount > 0) {
+                if (supportFragmentManager.backStackEntryCount == 1) {
                     supportFragmentManager.popBackStack()
                 } else {
                     finish()

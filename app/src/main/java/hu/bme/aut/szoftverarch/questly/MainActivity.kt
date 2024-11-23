@@ -248,6 +248,7 @@ fun MainScreen(drawerState: DrawerState) {
                             navController.navigate("mapeditor") {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
+                                    //inclusive = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true
@@ -263,6 +264,7 @@ fun MainScreen(drawerState: DrawerState) {
                             navController.navigate("logentries") {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
+                                    //inclusive = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true
@@ -405,6 +407,7 @@ fun BottomNavigationBar(navController: NavController) {
                 navController.navigate("home") {
                     popUpTo(navController.graph.startDestinationId) {
                         saveState = true
+                        //inclusive = true
                     }
                     launchSingleTop = true
                     restoreState = true
@@ -424,6 +427,7 @@ fun BottomNavigationBar(navController: NavController) {
                 navController.navigate("toplist") {
                     popUpTo(navController.graph.startDestinationId) {
                         saveState = true
+                        //inclusive = true
                     }
                     launchSingleTop = true
                     restoreState = true
@@ -438,6 +442,7 @@ fun BottomNavigationBar(navController: NavController) {
                 navController.navigate("settings") {
                     popUpTo(navController.graph.startDestinationId) {
                         saveState = true
+                        //inclusive = true
                     }
                     launchSingleTop = true
                     restoreState = true
@@ -452,6 +457,7 @@ fun BottomNavigationBar(navController: NavController) {
                 navController.navigate("profile") {
                     popUpTo(navController.graph.startDestinationId) {
                         saveState = true
+                        //inclusive = true
                     }
                     launchSingleTop = true
                     restoreState = true
