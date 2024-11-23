@@ -35,4 +35,5 @@
     <string name="statusLabel">Status:</string>
     <string name="roleLabel">Role:</string>
     <string name="PasswordTooShort">Password must be at least 8 characters long</string>
+    <string name="adminLabel">Administrator</string>
 </resources>

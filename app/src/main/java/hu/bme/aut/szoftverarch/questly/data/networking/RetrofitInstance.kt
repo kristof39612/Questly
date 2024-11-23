@@ -7,8 +7,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import hu.bme.aut.szoftverarch.questly.data.utils.gcf
 
 object RetrofitInstance {
-    //private const val BASE_URL = "http://vm.niif.cloud.bme.hu:18845/"
-    //private const val BASE_URL = "http://192.168.1.198:8080"
     private const val BASE_URL = "https://questly.lovacsi.me"
     val api: ApiService by lazy {
         val retrofit = Retrofit.Builder()

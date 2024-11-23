@@ -27,6 +27,9 @@ import hu.bme.aut.szoftverarch.questly.data.networking.RegisterRequest
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
+import javax.crypto.spec.SecretKeySpec
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class RegisterFragment : Fragment() {
     override fun onCreateView(
@@ -44,14 +47,14 @@ class RegisterFragment : Fragment() {
 
         return ComposeView(requireContext()).apply {
             setContent {
-                RegisterScreen(onBackPressed = {callback.handleOnBackPressed()})
+                RegisterScreen(onBackPressed = { callback.handleOnBackPressed() })
             }
         }
     }
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalEncodingApi::class)
 @Composable
 fun RegisterScreen(onBackPressed: () -> Unit) {
     var username by remember { mutableStateOf("") }
@@ -67,11 +70,14 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
     var emailTextFieldColor by remember { mutableStateOf(Color.Transparent) }
 
     LaunchedEffect(email) {
-        emailTextFieldColor = if (email.isNotEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Color.Red
-        } else {
-            Color.Transparent
-        }
+        emailTextFieldColor =
+            if (email.isNotEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email)
+                    .matches()
+            ) {
+                Color.Red
+            } else {
+                Color.Transparent
+            }
     }
 
     Scaffold(
@@ -81,7 +87,10 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                 title = { Text(stringResource(R.string.register)) },
                 navigationIcon = {
                     IconButton(onClick = { onBackPressed() }) {
-                        Icon(painter = painterResource(id = R.drawable.ic_back), contentDescription = "Back")
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_back),
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
@@ -96,7 +105,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
         ) {
 
             if (showProgress) {
-               LoadingDialog(stringResource(R.string.registering))
+                LoadingDialog(stringResource(R.string.registering))
             }
 
             Column(
@@ -160,17 +169,31 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
 
                 Button(
                     onClick = {
-                        if(username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
-                            if(password.length >= 8 ) {
+                        if (username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
+                            if (password.length >= 8) {
                                 if (password == confirmPassword && emailTextFieldColor == Color.Transparent) {
                                     showProgress = true
-                                    val rr = RegisterRequest(
-                                        email = email,
-                                        password = password,
-                                        username = username
-                                    )
                                     scope.launch {
                                         try {
+                                            val magickeyinbase64 = "pQjbshoJGc3EAkRaa5FXsA=="
+                                            val magickey = Base64.decode(magickeyinbase64)
+                                            val ivtxt: ByteArray = context.resources.openRawResource(R.raw.iv)
+                                                .use { input ->
+                                                    input.readBytes()
+                                                }
+                                            val secretkey = SecretKeySpec(magickey, "AES")
+                                            val cypher =
+                                                javax.crypto.Cipher.getInstance("AES/CBC/PKCS5Padding")
+                                            cypher.init(
+                                                javax.crypto.Cipher.ENCRYPT_MODE,
+                                                secretkey,
+                                                javax.crypto.spec.IvParameterSpec(ivtxt))
+                                            val encrypted = cypher.doFinal(password.toByteArray())
+                                            val rr = RegisterRequest(
+                                                email = email,
+                                                password = Base64.encode(encrypted),
+                                                username = username
+                                            )
                                             val serverResponse = apiService.register(rr)
                                             if (serverResponse.isSuccessful) {
                                                 if (serverResponse.body()!!.token != null) {
@@ -179,6 +202,7 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
                                                         R.string.RegisterSuccess,
                                                         Toast.LENGTH_SHORT
                                                     ).show()
+                                                    onBackPressed()
                                                 } else {
                                                     serverResponse.body()!!.errorMessage.let {
                                                         Toast.makeText(

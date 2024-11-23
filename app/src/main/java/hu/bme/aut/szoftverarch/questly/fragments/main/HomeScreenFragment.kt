@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.location.Location
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -265,7 +266,7 @@ fun HomeScreenFragment(navController: NavController) {
                             }
                             val distance = location.distanceTo(taskLocation)
                             goalInRange =
-                                distance <= 30000          // In meters -> Specification #TODO: 300m-ről átteni
+                                distance <= 10          // In meters -> Specification #TODO: 300m-ről átteni
                         }
                     }
                     Marker(
@@ -307,7 +308,7 @@ fun HomeScreenFragment(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.placeholder_cat),
+                painter = painterResource(id = R.drawable.nogps),
                 contentDescription = "Location icon",
                 modifier = Modifier.padding(16.dp)
             )
@@ -329,7 +330,7 @@ fun HomeScreenFragment(navController: NavController) {
                     longitude = taskPoint.location.longitude
                 }
                 val distance = location.distanceTo(taskLocation)
-                isWithinRange = distance <= 30000          // In meters -> Specification #TODO: 300m-ről átteni
+                isWithinRange = distance <= 10          // In meters -> Specification #TODO: 300m-ről átteni
             }
         }
 
@@ -349,14 +350,25 @@ fun HomeScreenFragment(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = taskPoint.task::class.java.simpleName,
+                    text = taskPoint.title,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 StarRating(rating = taskPoint.rating)
                 Text(stringResource(R.string.taskIdLabel) + " ${taskPoint.id}")
-                Text(stringResource(R.string.locationLabel)+": ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
-
+                val gc = Geocoder(context)
+                val address = gc.getFromLocation(taskPoint.location.latitude, taskPoint.location.longitude, 1)
+                if (address != null) {
+                    if(address.isNotEmpty()) {
+                        if(address[0].thoroughfare != null && address[0].subThoroughfare != null){
+                            Text("${address[0].thoroughfare} ${address[0].subThoroughfare}")
+                        } else {
+                            Text(address[0].getAddressLine(0).replaceFirst("Budapest ", "").replace(Regex(" \\d{4} Hungary$"), ""))
+                        }
+                    } else {
+                        Text(stringResource(R.string.locationLabel) + ": ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
+                    }
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {

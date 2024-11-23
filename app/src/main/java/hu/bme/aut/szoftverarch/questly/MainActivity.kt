@@ -50,7 +50,6 @@ import hu.bme.aut.szoftverarch.questly.fragments.main.HomeScreenFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.logentry.LogEntryDetailedViewFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.logentry.LogEntryListFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.ProfileScreen
-import hu.bme.aut.szoftverarch.questly.fragments.main.SettingsScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.SolveTaskScreen
 import hu.bme.aut.szoftverarch.questly.fragments.main.ToplistFragment
 import hu.bme.aut.szoftverarch.questly.fragments.main.mapeditor.MapEditorFragment
@@ -235,7 +234,7 @@ fun MainScreen(drawerState: DrawerState) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Administrator")
+                                append(stringResource(R.string.adminLabel))
                             }
                         }, style = MaterialTheme.typography.bodyLarge, color = Color.Red)
 
@@ -327,7 +326,6 @@ fun MainScreen(drawerState: DrawerState) {
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable("home") { HomeScreenFragment(navController) }
-                composable("settings") { SettingsScreen() }
                 composable("profile") { ProfileScreen(navController) }
                 composable("toplist") { ToplistFragment() }
                 composable("solveTask/{taskPointId}") { backStackEntry ->
@@ -418,7 +416,7 @@ fun BottomNavigationBar(navController: NavController) {
             icon = {
                 Icon(
                     painterResource(id = R.drawable.ic_trophy),
-                    contentDescription = "Toplist"
+                    contentDescription = stringResource(R.string.toplistMenu)
                 )
             },
             label = { Text(stringResource(R.string.toplistMenu)) },
@@ -435,22 +433,7 @@ fun BottomNavigationBar(navController: NavController) {
             }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
-            label = { Text(stringResource(R.string.settingsMenu)) },
-            selected = currentDestination?.hierarchy?.any { it.route == "settings" } == true,
-            onClick = {
-                navController.navigate("settings") {
-                    popUpTo(navController.graph.startDestinationId) {
-                        saveState = true
-                        //inclusive = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Filled.Person, contentDescription = "Profile") },
+            icon = { Icon(Icons.Filled.Person, contentDescription = stringResource(R.string.profileMenu)) },
             label = { Text(stringResource(R.string.profileMenu)) },
             selected = currentDestination?.hierarchy?.any { it.route == "profile" } == true,
             onClick = {

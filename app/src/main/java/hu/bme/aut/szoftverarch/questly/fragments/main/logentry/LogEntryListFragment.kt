@@ -175,7 +175,7 @@ fun LogEntryItem(
                 )
             }
             Text(
-                text = "Rating: ${logEntry.givenRating}",
+                text = "Rating: ${logEntry.givenRating}*",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary
             )
