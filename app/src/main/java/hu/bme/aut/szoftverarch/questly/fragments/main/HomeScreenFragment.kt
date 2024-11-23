@@ -58,6 +58,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.Polygon
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.data.networking.StartStopTaskRequest
 import hu.bme.aut.szoftverarch.questly.data.tasks.GoToPointTask
@@ -65,6 +66,8 @@ import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.StarRating
 import hu.bme.aut.szoftverarch.questly.graphics.TaskCompletionDialog
+import hu.bme.aut.szoftverarch.questly.graphics.createHole
+import hu.bme.aut.szoftverarch.questly.graphics.createOuterBounds
 import hu.bme.aut.szoftverarch.questly.graphics.taskPointIcon
 
 
@@ -283,6 +286,13 @@ fun HomeScreenFragment(navController: NavController) {
                     )
                 }
             }
+            /// GEOFENCE
+            Polygon(
+                points = createOuterBounds(),
+                holes = listOf((createHole(bpcenter, 10000))),
+                fillColor = Color(0x55FF0000),
+                strokeWidth = 0f
+            )
         }
     } else {
         Column(

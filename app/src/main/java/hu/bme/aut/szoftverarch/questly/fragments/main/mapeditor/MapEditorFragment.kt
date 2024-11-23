@@ -49,6 +49,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberCameraPositionState
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.TaskPoint
@@ -56,6 +57,9 @@ import hu.bme.aut.szoftverarch.questly.data.database.TaskPointDatabase
 import hu.bme.aut.szoftverarch.questly.data.utils.StatusEnum
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import hu.bme.aut.szoftverarch.questly.graphics.StarRating
+import hu.bme.aut.szoftverarch.questly.graphics.checkIfInPlayArea
+import hu.bme.aut.szoftverarch.questly.graphics.createHole
+import hu.bme.aut.szoftverarch.questly.graphics.createOuterBounds
 import hu.bme.aut.szoftverarch.questly.graphics.getBitmapFromVectorDrawable
 import hu.bme.aut.szoftverarch.questly.graphics.taskPointIcon
 import kotlinx.coroutines.launch
@@ -148,6 +152,12 @@ fun MapEditorFragment(
                     )
                 )
             }
+            Polygon(
+                points = createOuterBounds(),
+                holes = listOf((createHole(bpcenter, 10000))),
+                fillColor = Color(0x55FF0000),
+                strokeWidth = 0f
+            )
         }
 
         selectedTaskPoint.value?.let { taskPoint ->
@@ -228,14 +238,22 @@ fun MapEditorFragment(
                         Button(
                             modifier = Modifier.weight(1f),
                             onClick = {
-                                Toast.makeText(
-                                    context,
-                                    "Task point creation started!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                tempMarkerPosition.value = null // Remove marker
-                                navController.navigate("edit/newTaskpoint/${tempPosition.latitude},${tempPosition.longitude}")
-                                scope.launch { sheetState.hide() }
+                                if(checkIfInPlayArea(tempPosition, bpcenter)){
+                                    Toast.makeText(
+                                        context,
+                                        "Task point creation started!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    tempMarkerPosition.value = null // Remove marker
+                                    navController.navigate("edit/newTaskpoint/${tempPosition.latitude},${tempPosition.longitude}")
+                                    scope.launch { sheetState.hide() }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Task point is outside the play area!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         ) {
                             Text("Yes")
