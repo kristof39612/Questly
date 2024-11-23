@@ -38,6 +38,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import hu.bme.aut.szoftverarch.questly.R
+import hu.bme.aut.szoftverarch.questly.data.database.LogEntryDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.*
 import hu.bme.aut.szoftverarch.questly.graphics.ConfirmExitDialog
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
@@ -293,6 +294,8 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                                         val response =
                                             apiService.completeTask(rating.toLong(), part)
                                         if (response.isSuccessful) {
+                                            val logentryReform = LogEntryDatabase.getInstance(context).logEntryDao()
+                                            logentryReform.insertAll(response.body()!!)
                                             Toast.makeText(
                                                 context,
                                                 "Task completed successfully!",

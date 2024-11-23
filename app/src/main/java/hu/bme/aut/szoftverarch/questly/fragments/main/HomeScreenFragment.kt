@@ -307,7 +307,7 @@ fun HomeScreenFragment(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.placeholder_cat),
+                painter = painterResource(id = R.drawable.nogps),
                 contentDescription = "Location icon",
                 modifier = Modifier.padding(16.dp)
             )

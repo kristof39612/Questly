@@ -67,7 +67,7 @@ interface ApiService {
     suspend fun completeTask(
         @Part("givenRating") givenRating: Long,
         @Part photo: MultipartBody.Part
-    ): retrofit2.Response<CompleteTaskResponse>
+    ): retrofit2.Response<LogEntry>
 
     @GET("/user/getLogEntries")
     suspend fun getLogEntries(): retrofit2.Response<List<LogEntry>>
@@ -114,15 +114,6 @@ data class StartStopTaskRequest(
 @Serializable
 data class CurrentTaskResponse(
     val taskPointId: Long
-)
-
-data class CompleteTaskResponse(
-    val id: Long,
-    val visitedPointId: Long,
-    val visitDate: String,
-    val userId: Long,
-    val photoId: Int,
-    val givenRating: Int
 )
 
 class AuthInterceptor(private val sharedPreferences: SharedPreferences) : Interceptor {

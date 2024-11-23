@@ -81,6 +81,9 @@ fun taskChecker(
             if(!checkIfInPlayArea(gotoLocation.toGoogleLatLong(), bpcenter)){
                 throw IllegalArgumentException("Location must be within the play area")
             }
+            if(taskPointLocation.distanceTo(gotoLocation) < 100){
+                throw IllegalArgumentException("Location must be at least 100 meters away from the task point")
+            }
             return GoToPointTask(gotoLocation)
         }
         else -> throw IllegalArgumentException("Invalid task type")
