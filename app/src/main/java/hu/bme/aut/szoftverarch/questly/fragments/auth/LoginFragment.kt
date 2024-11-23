@@ -286,14 +286,24 @@ fun LoginScreen() {
                                 val lr = LoginRequest(email, Base64.encode(encrypted))
                                 val call = apiService.login(lr)
                                 if (call.isSuccessful) {
-                                    val token = call.body()?.token
-                                    val editor = sharedPreferences.edit()
-                                    editor.putString("userToken", token)
-                                    editor.putString("userEmail", email)
-                                    editor.apply()
-                                    // Save token
-                                    context.startActivity(Intent(context, MainActivity::class.java))
-                                    activity?.finish()
+                                    if(call.body()?.token == null) {
+                                        Toast.makeText(context, R.string.LoginFailed, Toast.LENGTH_SHORT)
+                                            .show()
+                                    } else {
+                                        val token = call.body()?.token
+                                        val editor = sharedPreferences.edit()
+                                        editor.putString("userToken", token)
+                                        editor.putString("userEmail", email)
+                                        editor.apply()
+                                        // Save token
+                                        context.startActivity(
+                                            Intent(
+                                                context,
+                                                MainActivity::class.java
+                                            )
+                                        )
+                                        activity?.finish()
+                                    }
                                 } else {
                                     Toast.makeText(context, R.string.LoginFailed, Toast.LENGTH_SHORT)
                                         .show()
