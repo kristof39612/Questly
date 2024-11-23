@@ -84,6 +84,8 @@ dependencies {
     implementation (libs.retrofit2.retrofit)
     implementation(libs.okhttp)
     implementation (libs.converter.gson)
+    implementation (libs.coil.kt.coil.compose)
+    implementation(libs.coil.svg)
     //implementation(libs.androidx.ui.graphics)
     //implementation(libs.androidx.foundation)
     

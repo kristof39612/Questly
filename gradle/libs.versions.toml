@@ -2,6 +2,8 @@
 accompanistSystemuicontrollerVersion = "0.28.0"
 activityCompose = "1.9.3"
 agp = "8.7.2"
+coilCompose = "2.0.0"
+coilSvgVersion = "2.0.0"
 converterGson = "2.9.0"
 googleAccompanistPermissionsVersion = "0.36.0"
 gson = "2.11.0"
@@ -42,6 +44,8 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx"
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+coil-kt-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coilSvgVersion" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontrollerVersion" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }

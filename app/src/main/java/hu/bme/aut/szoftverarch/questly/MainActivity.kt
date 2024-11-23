@@ -328,7 +328,7 @@ fun MainScreen(drawerState: DrawerState) {
             ) {
                 composable("home") { HomeScreenFragment(navController) }
                 composable("settings") { SettingsScreen() }
-                composable("profile") { ProfileScreen() }
+                composable("profile") { ProfileScreen(navController) }
                 composable("toplist") { ToplistFragment() }
                 composable("solveTask/{taskPointId}") { backStackEntry ->
                     val taskPointId = backStackEntry.arguments?.getString("taskPointId")
