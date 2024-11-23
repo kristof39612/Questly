@@ -349,7 +349,7 @@ fun HomeScreenFragment(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = taskPoint.task::class.java.simpleName,
+                    text = taskPoint.title,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))

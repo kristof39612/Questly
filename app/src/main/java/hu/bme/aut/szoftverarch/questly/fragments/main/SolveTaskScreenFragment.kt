@@ -273,6 +273,11 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                     onClick = {
                         showProgress = true
                         if (checkIfCorrect(taskPoint.value!!, answer, selectedChoice)) {
+                            if(rating == 0){
+                                Toast.makeText(context, "Please rate the task", Toast.LENGTH_SHORT).show()
+                                showProgress = false
+                                return@Button
+                            }
                             if (imageFilePath.value != null) {
                                 scope.launch {
                                     try {
