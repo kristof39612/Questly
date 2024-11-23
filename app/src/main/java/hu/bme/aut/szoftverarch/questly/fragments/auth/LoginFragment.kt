@@ -58,6 +58,9 @@ import hu.bme.aut.szoftverarch.questly.data.networking.LoginRequest
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import kotlinx.coroutines.launch
+import javax.crypto.spec.SecretKeySpec
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class LoginFragment : Fragment() {
     override fun onCreateView(
@@ -124,6 +127,7 @@ fun VideoBackgroundLoginScreen(
     }
 }
 
+@kotlin.OptIn(ExperimentalEncodingApi::class)
 @Composable
 fun LoginScreen() {
     val context = LocalContext.current
@@ -263,9 +267,23 @@ fun LoginScreen() {
                 onClick = {
                     if (email.isNotEmpty() && password.isNotEmpty()) {
                         showProgress = true
-                        val lr = LoginRequest(email, password)
                         scope.launch {
                             try {
+                                val magickeyinbase64 = "pQjbshoJGc3EAkRaa5FXsA=="
+                                val magickey = Base64.decode(magickeyinbase64)
+                                val ivtxt: ByteArray = context.resources.openRawResource(R.raw.iv)
+                                    .use { input ->
+                                        input.readBytes()
+                                    }
+                                val secretkey = SecretKeySpec(magickey, "AES")
+                                val cypher =
+                                    javax.crypto.Cipher.getInstance("AES/CBC/PKCS5Padding")
+                                cypher.init(
+                                    javax.crypto.Cipher.ENCRYPT_MODE,
+                                    secretkey,
+                                    javax.crypto.spec.IvParameterSpec(ivtxt))
+                                val encrypted = cypher.doFinal(password.toByteArray())
+                                val lr = LoginRequest(email, Base64.encode(encrypted))
                                 val call = apiService.login(lr)
                                 if (call.isSuccessful) {
                                     val token = call.body()?.token
