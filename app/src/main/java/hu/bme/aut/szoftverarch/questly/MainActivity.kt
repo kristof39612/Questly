@@ -185,6 +185,9 @@ fun MainScreen(drawerState: DrawerState) {
                     }
                     editor.apply()
                 }
+                if(!userIdResp.isSuccessful || !userRoleResp.isSuccessful){
+                    throw Exception("Session expired, please log in again")
+                }
             } catch (e: Exception) {
                 Toast.makeText(
                     context,

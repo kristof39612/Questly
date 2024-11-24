@@ -1,5 +1,6 @@
 package hu.bme.aut.szoftverarch.questly.fragments.auth
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +27,7 @@ import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.networking.RegisterRequest
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
+import hu.bme.aut.szoftverarch.questly.graphics.LockScreenOrientation
 import kotlinx.coroutines.launch
 import javax.crypto.spec.SecretKeySpec
 import kotlin.io.encoding.Base64
@@ -68,6 +70,8 @@ fun RegisterScreen(onBackPressed: () -> Unit) {
     var showProgress by remember { mutableStateOf(false) }
 
     var emailTextFieldColor by remember { mutableStateOf(Color.Transparent) }
+
+    LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     LaunchedEffect(email) {
         emailTextFieldColor =

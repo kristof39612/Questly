@@ -87,6 +87,8 @@ fun HomeScreenFragment(navController: NavController) {
     val scope = rememberCoroutineScope()
     val selectedTaskPoint = remember { mutableStateOf<TaskPoint?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val gtpSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val currentGTPTask = remember { mutableStateOf<GoToPointTask?>(null) }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var userLocation by remember { mutableStateOf<Location?>(null) }
     var isWithinRange by remember { mutableStateOf(false) }
@@ -116,7 +118,14 @@ fun HomeScreenFragment(navController: NavController) {
         scope.launch {
             val points = taskPointDao.queryAll()
             userVisitedPoints.clear()
-            userVisitedPoints.addAll(logEntryDao.queryByUserId(context.getSharedPreferences("UserData", Context.MODE_PRIVATE).getString("userID", "") ?: ""))
+            userVisitedPoints.addAll(
+                logEntryDao.queryByUserId(
+                    context.getSharedPreferences(
+                        "UserData",
+                        Context.MODE_PRIVATE
+                    ).getString("userID", "") ?: ""
+                )
+            )
             taskPoints.addAll(points)
         }
     }
@@ -128,7 +137,7 @@ fun HomeScreenFragment(navController: NavController) {
     }
 
     LaunchedEffect(reloadTrigger) {
-        if(reloadTrigger) {
+        if (reloadTrigger) {
             scope.launch {
                 taskPoints.clear()
                 val points = taskPointDao.queryAll()
@@ -136,7 +145,7 @@ fun HomeScreenFragment(navController: NavController) {
             }
             val sp = context.getSharedPreferences("UserData", Context.MODE_PRIVATE)
             sp.edit().putString("currentTask", "").apply()
-            currentTaskpointId = sp.getString("currentTask", "")?:""
+            currentTaskpointId = sp.getString("currentTask", "") ?: ""
             currentTaskPoint = null
             scope.launch {
                 currentTaskPoint = taskPointDao.queryById(currentTaskpointId)
@@ -146,11 +155,11 @@ fun HomeScreenFragment(navController: NavController) {
         }
     }
 
-    if(showProgress){
+    if (showProgress) {
         LoadingDialog()
     }
 
-    if(showTaskCompleteDialog){
+    if (showTaskCompleteDialog) {
         TaskCompletionDialog(
             onDismiss = {
                 showTaskCompleteDialog = false
@@ -187,7 +196,7 @@ fun HomeScreenFragment(navController: NavController) {
                 userLocation = location
             }
         }
-        if(currentTaskpointId != ""){
+        if (currentTaskpointId != "") {
             // Overlay Login UI
             Column(
                 modifier = Modifier
@@ -208,9 +217,12 @@ fun HomeScreenFragment(navController: NavController) {
             uiSettings = uiSettings,
             properties = mapProperties
         ) {
-            if(currentTaskpointId == "") {
+            if (currentTaskpointId == "") {
                 taskPoints.forEach { taskPoint ->
-                    if(taskPoint.status == StatusEnum.APPROVED && !userVisitedPoints.contains(taskPoint.id.toString())){
+                    if (taskPoint.status == StatusEnum.APPROVED && !userVisitedPoints.contains(
+                            taskPoint.id.toString()
+                        )
+                    ) {
                         val icon = taskPointIcon(taskPoint)
 
                         Marker(
@@ -255,22 +267,16 @@ fun HomeScreenFragment(navController: NavController) {
                         true
                     }
                 )
-                if(currentTaskPoint!!.task::class.java.simpleName == "GoToPointTask"){
-                    val gtp = currentTaskPoint!!.task as GoToPointTask
+                if (currentTaskPoint!!.task::class.java.simpleName == "GoToPointTask") {
+                    val gtptask = currentTaskPoint!!.task as GoToPointTask
 
-                    LaunchedEffect(userLocation) {
-                        userLocation?.let { location ->
-                            val taskLocation = Location("").apply {
-                                latitude = gtp.where.latitude
-                                longitude = gtp.where.longitude
-                            }
-                            val distance = location.distanceTo(taskLocation)
-                            goalInRange =
-                                distance <= 10          // In meters -> Specification #TODO: 300m-ről átteni
-                        }
-                    }
                     Marker(
-                        state = MarkerState(position = LatLng(gtp.where.latitude, gtp.where.longitude)),
+                        state = MarkerState(
+                            position = LatLng(
+                                gtptask.where.latitude,
+                                gtptask.where.longitude
+                            )
+                        ),
                         icon = BitmapDescriptorFactory.fromBitmap(
                             getBitmapFromVectorDrawable(
                                 context,
@@ -278,17 +284,11 @@ fun HomeScreenFragment(navController: NavController) {
                             )
                         ),
                         onClick = {
-                            if(goalInRange){
-                                showTaskCompleteDialog = true
-                                true
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "You are not close enough to the goal!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                true
+                            scope.launch {
+                                currentGTPTask.value = gtptask
+                                gtpSheetState.show()
                             }
+                            true
                         },
                     )
                 }
@@ -321,6 +321,67 @@ fun HomeScreenFragment(navController: NavController) {
         }
     }
 
+    currentGTPTask.value?.let {
+        LaunchedEffect(userLocation) {
+            userLocation?.let { location ->
+                val taskLocation = Location("").apply {
+                    latitude = it.where.latitude
+                    longitude = it.where.longitude
+                }
+                val distance = location.distanceTo(taskLocation)
+                goalInRange = distance <= 10
+            }
+        }
+        ModalBottomSheet(
+            sheetState = gtpSheetState,
+            onDismissRequest = {
+                scope.launch {
+                    gtpSheetState.hide()
+                    currentGTPTask.value = null
+                }
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Goal Point",
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val gc = Geocoder(context)
+                val address =
+                    gc.getFromLocation(currentGTPTask.value!!.where.latitude, currentGTPTask.value!!.where.longitude, 1)
+                if (address != null) {
+                    if (address.isNotEmpty()) {
+                        if (address[0].thoroughfare != null && address[0].subThoroughfare != null) {
+                            Text("${address[0].thoroughfare} ${address[0].subThoroughfare}")
+                        } else {
+                            Text(
+                                address[0].getAddressLine(0).replaceFirst("Budapest ", "")
+                                    .replace(Regex(" \\d{4} Hungary$"), "")
+                            )
+                        }
+                    } else {
+                        Text(stringResource(R.string.locationLabel) + ": ${currentGTPTask.value!!.where.latitude}, ${currentGTPTask.value!!.where.longitude}")
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        showTaskCompleteDialog = true
+                    },
+                    enabled = goalInRange,
+                ) {
+                    Text("Complete Task")
+                }
+            }
+        }
+    }
+
     // ModalBottomSheet for task details
     selectedTaskPoint.value?.let { taskPoint ->
         LaunchedEffect(userLocation) {
@@ -330,7 +391,8 @@ fun HomeScreenFragment(navController: NavController) {
                     longitude = taskPoint.location.longitude
                 }
                 val distance = location.distanceTo(taskLocation)
-                isWithinRange = distance <= 10          // In meters -> Specification #TODO: 300m-ről átteni
+                isWithinRange =
+                    distance <= 10
             }
         }
 
@@ -357,13 +419,17 @@ fun HomeScreenFragment(navController: NavController) {
                 StarRating(rating = taskPoint.rating)
                 Text(stringResource(R.string.taskIdLabel) + " ${taskPoint.id}")
                 val gc = Geocoder(context)
-                val address = gc.getFromLocation(taskPoint.location.latitude, taskPoint.location.longitude, 1)
+                val address =
+                    gc.getFromLocation(taskPoint.location.latitude, taskPoint.location.longitude, 1)
                 if (address != null) {
-                    if(address.isNotEmpty()) {
-                        if(address[0].thoroughfare != null && address[0].subThoroughfare != null){
+                    if (address.isNotEmpty()) {
+                        if (address[0].thoroughfare != null && address[0].subThoroughfare != null) {
                             Text("${address[0].thoroughfare} ${address[0].subThoroughfare}")
                         } else {
-                            Text(address[0].getAddressLine(0).replaceFirst("Budapest ", "").replace(Regex(" \\d{4} Hungary$"), ""))
+                            Text(
+                                address[0].getAddressLine(0).replaceFirst("Budapest ", "")
+                                    .replace(Regex(" \\d{4} Hungary$"), "")
+                            )
                         }
                     } else {
                         Text(stringResource(R.string.locationLabel) + ": ${taskPoint.location.latitude}, ${taskPoint.location.longitude}")
@@ -377,22 +443,38 @@ fun HomeScreenFragment(navController: NavController) {
                             sheetState.hide()
                             selectedTaskPoint.value = null
                             val req = StartStopTaskRequest(taskPoint.id)
-                            try{
+                            try {
                                 val response = apiService.startTask(req)
-                                if(response.isSuccessful){
-                                    if(taskPoint.task is GoToPointTask){
-                                        Toast.makeText(context,"Task Accepted!",Toast.LENGTH_SHORT).show()
-                                        val sp = context.getSharedPreferences("UserData", Context.MODE_PRIVATE)
-                                        sp.edit().putString("currentTask", taskPoint.id.toString()).apply()
+                                if (response.isSuccessful) {
+                                    if (taskPoint.task is GoToPointTask) {
+                                        Toast.makeText(
+                                            context,
+                                            "Task Accepted!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        val sp = context.getSharedPreferences(
+                                            "UserData",
+                                            Context.MODE_PRIVATE
+                                        )
+                                        sp.edit().putString("currentTask", taskPoint.id.toString())
+                                            .apply()
                                         currentTaskpointId = taskPoint.id.toString()
                                     } else {
                                         navController.navigate("solveTask/${taskPoint.id}")
                                     }
                                 } else {
-                                    Toast.makeText(context, R.string.taskStartFailed, Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        R.string.taskStartFailed,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             } catch (e: Exception) {
-                                Toast.makeText(context, R.string.taskStartFailed, Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    R.string.taskStartFailed,
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             } finally {
                                 showProgress = false
                             }
@@ -458,17 +540,29 @@ fun CurrentTaskActiveBox(
                     onClick = {
                         scope.launch {
                             val cancelRequest = StartStopTaskRequest(currentTaskpoint.toLong())
-                            try{
+                            try {
                                 val apiService = RetrofitInstance.getAuthorizedApi(context)
                                 val response = apiService.cancelTask(cancelRequest)
-                                if(response.isSuccessful){
-                                    Toast.makeText(context, "Task has been cancelled!", Toast.LENGTH_SHORT).show()
+                                if (response.isSuccessful) {
+                                    Toast.makeText(
+                                        context,
+                                        "Task has been cancelled!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                     triggerReload()
                                 } else {
-                                    Toast.makeText(context, R.string.taskCancelFailed, Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        R.string.taskCancelFailed,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
-                            } catch (e: Exception){
-                                Toast.makeText(context, R.string.taskCancelFailed, Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    R.string.taskCancelFailed,
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                     },
