@@ -3,6 +3,7 @@ package hu.bme.aut.szoftverarch.questly.fragments.auth
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -57,6 +58,7 @@ import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.networking.LoginRequest
 import hu.bme.aut.szoftverarch.questly.data.networking.RetrofitInstance
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
+import hu.bme.aut.szoftverarch.questly.graphics.LockScreenOrientation
 import kotlinx.coroutines.launch
 import javax.crypto.spec.SecretKeySpec
 import kotlin.io.encoding.Base64
@@ -142,7 +144,7 @@ fun LoginScreen() {
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(color = Color.Transparent)
     systemUiController.isSystemBarsVisible = true
-
+    LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     if (sharedPreferences.getString("userToken", null) != null) {
         context.startActivity(Intent(context, MainActivity::class.java))
         activity?.finish()
