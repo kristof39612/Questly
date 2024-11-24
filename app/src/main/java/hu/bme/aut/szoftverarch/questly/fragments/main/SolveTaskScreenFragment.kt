@@ -33,6 +33,7 @@ import android.Manifest
 import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.style.TextAlign
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -40,6 +41,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import hu.bme.aut.szoftverarch.questly.R
 import hu.bme.aut.szoftverarch.questly.data.database.LogEntryDatabase
 import hu.bme.aut.szoftverarch.questly.data.networking.*
+import hu.bme.aut.szoftverarch.questly.data.utils.LatLong.Companion.distanceTo
 import hu.bme.aut.szoftverarch.questly.graphics.ConfirmExitDialog
 import hu.bme.aut.szoftverarch.questly.graphics.LoadingDialog
 import java.io.File
@@ -205,8 +207,14 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                         }
                     }
                     is GoToPointTask -> {
+                        Text("\uD83C\uDF89 You've made it!! \uD83C\uDF89", style = MaterialTheme.typography.headlineLarge)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Please take a picture to prove your arrival", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.align(Alignment.CenterHorizontally), textAlign = TextAlign.Center)
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text("Destination: ${task.where.latitude}, ${task.where.longitude}")
-                        Spacer(modifier = Modifier.height(250.dp))
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Distance: ${task.where.distanceTo(taskPoint.value!!.location).toInt()} meters")
+                        Spacer(modifier = Modifier.height(150.dp))
                     }
                     else -> {
                         Text("Unknown task type")
@@ -296,6 +304,8 @@ fun SolveTaskScreen(navController: NavController, taskId: String) {
                                         if (response.isSuccessful) {
                                             val logentryReform = LogEntryDatabase.getInstance(context).logEntryDao()
                                             logentryReform.insertAll(response.body()!!)
+                                            val speditor = context.getSharedPreferences("UserData", 0).edit()
+                                            speditor.putString("currentTask", "").apply()
                                             Toast.makeText(
                                                 context,
                                                 "Task completed successfully!",
